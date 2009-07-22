@@ -1,0 +1,67 @@
+-module(etap_t_001).
+-export([start/0, rpcs_test/2]).
+
+-record(tester, {xx, yy, zz}).
+
+start() ->
+    etap:plan(11),
+
+    etap:diag("Test cfg module."),
+    etap_can:loaded_ok(mijkcfg, "module 'mijklog' loaded"),
+    etap_can:can_ok(mijkcfg, start_cfg),
+    etap_can:can_ok(mijkcfg, start_cfg, 1),
+    etap_can:can_ok(mijkcfg, rpcs),
+    etap_can:can_ok(mijkcfg, rpcs, 2),
+    
+    CfgPid = mijkcfg:start_cfg("test.cfg"),
+    etap_process:is_pid(CfgPid, "Cfg process started"),
+    etap_process:is_alive(CfgPid, "Cfg process is alive"),
+    
+    etap:is(rpcs_test(CfgPid, loglevel), [{loglevel, "DEBUG"}], "Get loglevel from Config"),
+    etap:is(rpcs_test(CfgPid, logopentype), [{logopentype, write}], "Get log open type from Config"),
+    etap:is(rpcs_test(CfgPid, unknownoption), [], "Search unknown option in Config"),
+    etap:is(rpcs_test_1(CfgPid, unkcmd), {error,"Unknown command"}, "Send unknown command to Cfg process"),
+    
+    etap:end_tests().
+
+
+    
+rpcs_test(Pid, Key) ->
+    Pid ! {self(), {search, Key}},
+    receive
+        Response -> Response
+    after 1000 -> exit('Resp timeout')
+    end.
+
+rpcs_test_1(Pid, Search) ->
+    Pid ! {self(), Search},
+    receive
+        Response -> Response
+    after 1000 -> exit('Resp timeout')
+    end.
+
+sleep(T) ->
+    receive
+    after T -> true
+    end.
+
+%    etap:not_ok(false, "Proving etap:not_ok/2 needs false"),
+%    etap:is(1, 1, "Proving etap:is/3 must have 2 equal values"),
+%    etap:isnt(1, 2, "Proving etap:isnt/3 can not have 2 equal values"),
+%    etap:is_greater(3, 1, "Proving 3 is greater than 1."),
+%    etap:is([foo, bar, baz], [foo, bar, baz], "Proving etap:is/3 can use complex structures"),
+%    etap:isnt([foo, bar, baz], [bar, foo, baz], "Proving etap:isnt/3 can use complex structures"),
+    
+%    Foo = #tester{ xx = 1, yy = 2, zz = 3},
+%    Bar = #tester{ xx = 4, yy = 5, zz = 6},
+    
+%    etap:is(Foo, Foo, "Proving etap:is/3 can use records"),
+%    etap:isnt(Foo, Bar, "Proving etap:isnt/3 can use records"),
+%    etap:any(fun(foo) -> true; (_)-> false end, [foo, bar, baz], "Proving etap:any/3 works with atoms"),
+%    etap:any(fun({_, this}) -> true; (_)-> false end, [{1, none}, {2, all}, {3, this}], "Proving etap:any/3 works with lists of tuples"),
+%    etap:any(fun([{record, value} | _]) -> true; (_)-> false  end, [[{something, nothing}, {somewhere, nowhere}], [{name, nick}, {has_family, true}], [{record, value}, {term, atom}]], "Proving etap:none/3 works with simple structures"),
+%    etap:none(fun(the_bitch) -> true; (_)-> false  end, lists:seq(1, 99), "Proving etap:none/3 works with simple structures"),
+%    etap:none(fun([{color, red} | _]) -> true; (_)-> false  end, [[{something, nothing}, {somewhere, nowhere}], [{name, nick}, {has_family, true}], [{record, value}, {term, atom}]], "Proving etap:none/3 works with simple structures"),
+%    etap:fun_is(fun(Expected) -> case Expected of "abc" ++ _ -> true; _ -> false end end, "abcdefg", "fun_is/3 works with simple lists"),
+%    etap:fun_is(fun(Expected) -> case Expected of {foo, _} -> true; _ -> false end end, {foo, bar}, "fun_is/3 works with simple lists"),
+%    etap:end_tests().
