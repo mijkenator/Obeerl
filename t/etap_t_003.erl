@@ -3,6 +3,7 @@
 
 
 start() ->
+    ssl:start(),
     etap:plan(10),
     etap:diag("Common application tests."),
     etap_can:loaded_ok(logger, "module 'logger' loaded"),
@@ -45,15 +46,21 @@ start() ->
     %
     {ok, ListenControlPort} = application:get_env(obelisk, control_port),
     io:format("trying to connect to control ~p port ~n", [ListenControlPort]),
-    
-    {ConnectControlStatus, ConnectControlRet}  = gen_tcp:connect({127,0,0,1},
-            ListenControlPort, [{packet,2}]),
+    Opts = case application:get_env(obelisk, control_port_tls) of
+        true -> io:format("Use ssl ~n"),
+                [{packet, 2}, {use_ssl, true}];
+        _    -> [{packet, 2}, {use_ssl, false}]
+    end,
+    %{ConnectControlStatus, ConnectControlRet}  = gen_tcp:connect({127,0,0,1},
+    %        ListenControlPort, [{packet,2}]),
+    {ConnectControlStatus, ConnectControlRet} = mijktcp:connect({127,0,0,1}, ListenControlPort, Opts),
     io:format("listen control port ~p ~n", [ListenControlPort]),
     etap:is(ConnectControlStatus, ok, string:concat("Connect to port ",
                                             integer_to_list(ListenControlPort))),
     case ConnectStatus of
         ok         -> 
-                        gen_tcp:send(ConnectControlRet, <<"hello">>),
+                        %gen_tcp:send(ConnectControlRet, <<"hello">>),
+                        mijktcp:send(ConnectControlRet, <<"hello">>, Opts),
                         {_, _, EchoControlResponse} = receive Mc -> Mc end,
                         etap:is(EchoControlResponse, "hello", "echo response")
                         ;

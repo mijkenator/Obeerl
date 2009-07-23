@@ -31,6 +31,22 @@ close(Socket, Options) ->
             gen_tcp:close(Socket)
     end.
 
+connect(Address, Port, Options) ->  connect(Address, Port, Options, 10).
+connect(Address, Port, Options, Timeout) ->
+    case mijktcp:is_ssl(Options) of
+        true  ->
+            ssl:connect(Address, Port, Options, Timeout);
+        false ->
+            gen_tcp:connect(Address, Port, Options, Timeout)
+    end.
+
+send(Socket, Data, Options) ->
+    case mijktcp:is_ssl(Options) of
+        true  ->
+            ssl:send(Socket, Data);
+        false ->
+            gen_tcp:send(Socket, Data)
+    end.
 %
 % check Options array for {use_ssl, true | false}
 % return true | false

@@ -11,7 +11,7 @@
   %%
   {mod, {obelisk_app, []}},
   {env, [
-        {config_file,  "/home/ashim/research/obeerl_otp/t/test.cfg"},
+        {config_file,  "/home/ashim/research/Git/Obeerl/t/test.cfg"},
         {ums_root,     "/var/lib/ums" },
         {listen_port,  2223},
         {listen_port_tls, true},
