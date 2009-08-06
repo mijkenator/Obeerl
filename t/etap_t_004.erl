@@ -2,7 +2,7 @@
 -export([start/0]).
 
 start() ->
-    etap:plan(7),
+    etap:plan(8),
     etap:diag("mijktcp tests."),
     
     Opts_without_flag = [binary, {packet, 2}, {reuseaddr, true},
@@ -33,5 +33,14 @@ start() ->
     ssl:start(),
     {RetCodeSSL, RetValueSSL} = mijktcp:listen(4441, Opts_true),
     etap:is(RetCodeSSL, ok, "listen port with ssl"),
+    
+    {RetCodeSSL1, RetValueSSL1} = mijktcp:listen(4442, [binary, {packet, 2},
+                        {reuseaddr, true}, {keepalive, true},
+                        {backlog, 30}, {active, false}, {use_ssl, true},
+                        {depth, 2},
+                        {certfile,   "../server-cert.pem"}, 
+                        {keyfile,    "../server-key.pem"},
+                        {cacertfile, "../cacert.pem"}]),
+    etap:is(RetCodeSSL1, ok, "listen port with ssl 2"),
     
     etap:end_tests().

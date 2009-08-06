@@ -20,7 +20,22 @@ $ erl -boot start_sasl
  {tcp,#Port<0.150>,"hello"}
  
  
+ --------------------------------------------------------------------------
  
+ Opts_true = [binary, {packet, 2},
+                        {reuseaddr, true}, {keepalive, true},
+                        {backlog, 30}, {active, false}, {use_ssl, true},
+                        {depth, 2},
+                        {certfile,   "../client-cert.pem"}, 
+                        {keyfile,    "../client-key.pem"},
+                        {cacertfile, "../cacert.pem"}].
+ 
+ Opts_true = [binary, {packet, 2},
+                        {reuseaddr, true}, {keepalive, true},
+                        {backlog, 30}, {active, false}, {use_ssl, true}].
+ Opts_true = [binary, {packet, 2}, {active, false}, {use_ssl, true}].
+ 
+ mijktcp:connect({127,0,0,1}, 2225, Opts_true).
  
  
  

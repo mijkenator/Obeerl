@@ -2,7 +2,8 @@
 -author('mijkenator@gmail.com').
 
 
--export([listen/2, is_ssl/1, clear_opts/1, controlling_process/3, close/2]).
+-export([listen/2, is_ssl/1, clear_opts/1, controlling_process/3,
+    close/2, connect/3, connect/4, send/3, accept/2, recv/3, recv/4 ]).
 
 %
 % Options = [listen_option()] ++ {use_ssl, true | false}
@@ -31,13 +32,13 @@ close(Socket, Options) ->
             gen_tcp:close(Socket)
     end.
 
-connect(Address, Port, Options) ->  connect(Address, Port, Options, 10).
+connect(Address, Port, Options) ->  connect(Address, Port, Options, 10000).
 connect(Address, Port, Options, Timeout) ->
     case mijktcp:is_ssl(Options) of
         true  ->
-            ssl:connect(Address, Port, Options, Timeout);
+            ssl:connect(Address, Port, mijktcp:clear_opts(Options), Timeout);
         false ->
-            gen_tcp:connect(Address, Port, Options, Timeout)
+            gen_tcp:connect(Address, Port, mijktcp:clear_opts(Options), Timeout)
     end.
 
 send(Socket, Data, Options) ->
@@ -46,6 +47,24 @@ send(Socket, Data, Options) ->
             ssl:send(Socket, Data);
         false ->
             gen_tcp:send(Socket, Data)
+    end.
+    
+accept(Socket, Options) ->
+    case mijktcp:is_ssl(Options) of
+        true  ->
+            ssl:transport_accept(Socket);
+        false ->
+            gen_tcp:accept(Socket)
+    end.
+
+recv(Socket, Length, Options) ->
+    recv(Socket, Length, infinity, Options).
+recv(Socket, Length, Timeout, Options) ->
+    case mijktcp:is_ssl(Options) of
+        true  ->
+            ssl:recv(Socket, Length, Timeout);
+        false ->
+            gen_tcp:recv(Socket, Length, Timeout)
     end.
 %
 % check Options array for {use_ssl, true | false}

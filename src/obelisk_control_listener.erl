@@ -43,21 +43,32 @@ start_link(Port, Module) when is_integer(Port), is_atom(Module) ->
 init([Port, Module]) ->
     process_flag(trap_exit, true),
     Opts = case application:get_env(obelisk, control_port_tls) of
-        true -> [binary, {packet, 2}, {reuseaddr, true}, {keepalive, true},
-                    {backlog, 30}, {active, false}, {use_ssl, true}];
-        _    -> [binary, {packet, 2}, {reuseaddr, true}, {keepalive, true},
-                                                {backlog, 30}, {active, false}]
+        {ok, true} ->
+                        [binary, {packet, 2}, {reuseaddr, true}, {keepalive, true},
+                        {backlog, 30}, {active, false}, {use_ssl, true},
+                        {depth, 2},
+                        {certfile,   "../server-cert.pem"}, 
+                        {keyfile,    "../server-key.pem"},
+                        {cacertfile, "../cacert.pem"}];
+        _          ->
+                        [binary, {packet, 2}, {reuseaddr, true}, {keepalive, true},
+                        {backlog, 30}, {active, false}]
     end,
+    io:format("control listener DEBUG 1 ~n"),
     case mijktcp:listen(Port, Opts) of
     {ok, Listen_socket} ->
         %%Create first accepting process
+        io:format("control listener DEBUG 11 ~n"),
         {ok, Ref} = prim_inet:async_accept(Listen_socket, -1),
+        io:format("control listener DEBUG REF: ~p ~n",[Ref]),
+        io:format("control listener DEBUG 111 ~n"),
         {ok, #state{listener = Listen_socket,
                     acceptor = Ref,
                     module   = Module,
                     socket_o = Opts
                     }};
     {error, Reason} ->
+        io:format("control listener DEBUG 2 ~n"),
         {stop, Reason}
     end.
 

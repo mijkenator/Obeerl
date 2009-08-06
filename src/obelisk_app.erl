@@ -50,14 +50,14 @@ init([Port, Module]) ->
                   [obelisk_listener]                       % Modules  = [Module] | dynamic
               },
               {   tcp_control_server_sup,                  % Id       = internal id
-                  {obelisk_control_listener,
+                  {obelisk_control_listener2,
                         start_link,
                         [get_app_env(control_port,
                             ?DEF_C_PORT),Module]},         % StartFun = {M, F, A}
                   permanent,                               % Restart  = permanent | transient | temporary
                   2000,                                    % Shutdown = brutal_kill | int() >= 0 | infinity
                   worker,                                  % Type     = worker | supervisor
-                  [obelisk_control_listener]               % Modules  = [Module] | dynamic
+                  [obelisk_control_listener2]               % Modules  = [Module] | dynamic
               },
               % Client instance supervisor
               {   obelisk_com_sup,
