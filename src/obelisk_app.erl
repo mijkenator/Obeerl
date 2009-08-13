@@ -44,7 +44,8 @@ init([Port, Module]) ->
               {   tcp_server_sup,                          % Id       = internal id
                   {obelisk_listener,
                         start_link,[Port,Module,
-                        listener1, listen_port_tls]},      % StartFun = {M, F, A}
+                        listener1, listen_port_tls,
+                        {obelisk_listener, loop_func}]},   % StartFun = {M, F, A}
                   permanent,                               % Restart  = permanent | transient | temporary
                   2000,                                    % Shutdown = brutal_kill | int() >= 0 | infinity
                   worker,                                  % Type     = worker | supervisor
@@ -55,7 +56,8 @@ init([Port, Module]) ->
                         start_link,
                         [get_app_env(control_port,
                             ?DEF_C_PORT),Module,
-                        listener2, control_port_tls]},     % StartFun = {M, F, A}
+                        listener2, control_port_tls,
+                        {obelisk_listener, loop_func}]},   % StartFun = {M, F, A}
                   permanent,                               % Restart  = permanent | transient | temporary
                   2000,                                    % Shutdown = brutal_kill | int() >= 0 | infinity
                   worker,                                  % Type     = worker | supervisor

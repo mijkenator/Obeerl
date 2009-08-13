@@ -6,7 +6,7 @@
 -export([init/1, code_change/3, handle_call/3, handle_cast/2, handle_info/2, terminate/2]).
 -export([accept_loop/1]).
 %-export([start/3]).
--export([start_link/4]).
+-export([start_link/5]).
 -export([loop_func/2, call_loop/3]).
 
 -record(server_state, {
@@ -22,7 +22,7 @@
 %    State = #server_state{port = Port, loop = loop_func},
 %    gen_server:start_link({local, Name}, ?MODULE, State, []).
     
-start_link(Port, Module, ListenerName, ConfigItem) when is_integer(Port), is_atom(Module) ->
+start_link(Port, Module, ListenerName, ConfigItem, LoopFunc) when is_integer(Port), is_atom(Module) ->
     State = #server_state{port = Port,
                             loop = loop_func, module_o = Module,
                             configitem = ConfigItem},
