@@ -11,7 +11,7 @@ $ erl -boot start_sasl
  2> application:start(obelisk).
  ok
  
- 3> {ok,S} = gen_tcp:connect({127,0,0,1},2222,[{packet,2}]).
+ 3> {ok,S} = gen_tcp:connect({127,0,0,1},2223,[{packet,2}]).
  {ok,#Port<0.150>}
  
  4> gen_tcp:send(S,<<"hello">>).
@@ -75,4 +75,13 @@ When you're done:
   Continue
   
  http://github.com/mijkenator/Obeerl/tree/master
--------------------------------------------------------------------------------- 
+--------------------------------------------------------------------------------
+
+
+
+
+git status
+git add
+git commit -a -m "comment"
+git push origin master
+

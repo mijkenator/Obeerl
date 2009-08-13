@@ -4,7 +4,7 @@
 -behaviour(application).
 
 %% Internal API
--export([start_client/0]).
+-export([start_client/1]).
 
 %% Application and Supervisor callbacks
 -export([start/2, stop/1, init/1]).
@@ -20,8 +20,8 @@
 
 %% A startup function for spawning new client connection handling FSM.
 %% To be called by the TCP listener process.
-start_client() ->
-    supervisor:start_child(obelisk_com_sup, []).
+start_client(Opts) ->
+    supervisor:start_child(obelisk_com_sup, [Opts]).
 
 %%----------------------------------------------------------------------
 %% Application behaviour callbacks
@@ -43,21 +43,23 @@ init([Port, Module]) ->
               % TCP Listener
               {   tcp_server_sup,                          % Id       = internal id
                   {obelisk_listener,
-                        start_link,[Port,Module]},         % StartFun = {M, F, A}
+                        start_link,[Port,Module,
+                        listener1, listen_port_tls]},      % StartFun = {M, F, A}
                   permanent,                               % Restart  = permanent | transient | temporary
                   2000,                                    % Shutdown = brutal_kill | int() >= 0 | infinity
                   worker,                                  % Type     = worker | supervisor
                   [obelisk_listener]                       % Modules  = [Module] | dynamic
               },
               {   tcp_control_server_sup,                  % Id       = internal id
-                  {obelisk_control_listener2,
+                  {obelisk_listener,
                         start_link,
                         [get_app_env(control_port,
-                            ?DEF_C_PORT),Module]},         % StartFun = {M, F, A}
+                            ?DEF_C_PORT),Module,
+                        listener2, control_port_tls]},     % StartFun = {M, F, A}
                   permanent,                               % Restart  = permanent | transient | temporary
                   2000,                                    % Shutdown = brutal_kill | int() >= 0 | infinity
                   worker,                                  % Type     = worker | supervisor
-                  [obelisk_control_listener2]               % Modules  = [Module] | dynamic
+                  [obelisk_listener]                       % Modules  = [Module] | dynamic
               },
               % Client instance supervisor
               {   obelisk_com_sup,

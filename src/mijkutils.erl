@@ -3,6 +3,7 @@
 -export([ sleep/1, fold_file_lines/3, countlines/1, readlines/1, get_last_line/1,
           str_like/2 ]).
 
+-export([ get_obelisk_socket_options/2 ]).
 
 sleep(T) when is_integer(T), T > 0 ->
     receive
@@ -35,3 +36,15 @@ str_like(String, RegExp) ->
         _ -> false
     end.
     
+get_obelisk_socket_options(AppName, PortName) ->
+    case application:get_env(AppName, PortName) of
+        {ok, true} ->
+            [binary, {packet, 2}, {reuseaddr, true}, {keepalive, true},
+            {backlog, 30}, {active, false}, {use_ssl, true},
+            {depth, 2},
+            {certfile,   "../server-cert.pem"}, 
+            {keyfile,    "../server-key.pem"},
+            {cacertfile, "../cacert.pem"}];
+        _          ->
+            [binary, {packet, 2}, {active, false}, {use_ssl, false}]
+    end.

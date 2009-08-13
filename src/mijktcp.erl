@@ -3,7 +3,8 @@
 
 
 -export([listen/2, is_ssl/1, clear_opts/1, controlling_process/3,
-    close/2, connect/3, connect/4, send/3, accept/2, recv/3, recv/4 ]).
+    close/2, connect/3, connect/4, send/3, accept/2, recv/3, recv/4,
+    setopts/3, peername/2 ]).
 
 %
 % Options = [listen_option()] ++ {use_ssl, true | false}
@@ -66,6 +67,23 @@ recv(Socket, Length, Timeout, Options) ->
         false ->
             gen_tcp:recv(Socket, Length, Timeout)
     end.
+    
+setopts(Socket, Opts, Options) ->
+    case mijktcp:is_ssl(Options) of
+        true  ->
+            ssl:setopts(Socket, Opts);
+        false ->
+            inet:setopts(Socket, Opts)
+    end.
+
+peername(Socket, Options) ->
+    case mijktcp:is_ssl(Options) of
+        true  ->
+            ssl:peername(Socket);
+        false ->
+            inet:peername(Socket)
+    end.
+    
 %
 % check Options array for {use_ssl, true | false}
 % return true | false

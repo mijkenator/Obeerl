@@ -3,7 +3,8 @@
 
 -behaviour(gen_fsm).
 
--export([start_link/0, set_socket/2]).
+-export([start_link/1, set_socket/3]).
+
 
 %% gen_fsm callbacks
 -export([init/1, handle_event/3,
@@ -17,7 +18,8 @@
 
 -record(state, {
                 socket,    % client socket
-                addr       % client address
+                addr,       % client address
+                socket_options
                }).
 
 -define(TIMEOUT, 120000).
@@ -35,12 +37,11 @@
 %%      respectively.
 %% @end
 %%-------------------------------------------------------------------------
-start_link() ->
-    logger:log({debug, "commander start link"}),
-    gen_fsm:start_link(?MODULE, [], []).
+start_link(Opts) ->
+    gen_fsm:start_link(?MODULE, Opts, []).
 
-set_socket(Pid, Socket) when is_pid(Pid), is_port(Socket) ->
-    logger:log({debug, "commander set soket"}),
+%set_socket(Pid, Socket, Options) when is_pid(Pid), is_port(Socket) ->
+set_socket(Pid, Socket, _Options) ->
     gen_fsm:send_event(Pid, {socket_ready, Socket}).
 
 %%%------------------------------------------------------------------------
@@ -55,9 +56,9 @@ set_socket(Pid, Socket) when is_pid(Pid), is_port(Socket) ->
 %%          {stop, StopReason}
 %% @private
 %%-------------------------------------------------------------------------
-init([]) ->
+init(Opts) ->
     process_flag(trap_exit, true),
-    {ok, 'WAIT_FOR_SOCKET', #state{}}.
+    {ok, 'WAIT_FOR_SOCKET', #state{socket_options = Opts}}.
 
 %%-------------------------------------------------------------------------
 %% Func: StateName/2
@@ -66,33 +67,23 @@ init([]) ->
 %%          {stop, Reason, NewStateData}
 %% @private
 %%-------------------------------------------------------------------------
-'WAIT_FOR_SOCKET'({socket_ready, Socket}, State) when is_port(Socket) ->
-    % Now we own the socket
-    logger:log({debug, "commander: state 1"}),
-    inet:setopts(Socket, [{active, once}, {packet, 2}, binary]),
-    {ok, {IP, _Port}} = inet:peername(Socket),
-    {next_state, 'WAIT_FOR_DATA', State#state{socket=Socket, addr=IP}, ?TIMEOUT};
-'WAIT_FOR_SOCKET'(Other, State) ->
-    logger:log({debug, "commander: state 2"}),
-    error_logger:error_msg("State: 'WAIT_FOR_SOCKET'. Unexpected message: ~p\n", [Other]),
+%'WAIT_FOR_SOCKET'({socket_ready, Socket}, #state{socket_options=Options} = State) when is_port(Socket) ->
+'WAIT_FOR_SOCKET'({socket_ready, Socket}, #state{socket_options=Options} = State) ->
+    mijktcp:setopts(Socket, [{active, once}, {packet, 2}, binary], Options),
+    {ok, {IP, _Port}} = mijktcp:peername(Socket, Options),
+    {next_state, 'WAIT_FOR_DATA', State#state{socket=Socket, addr=IP, socket_options=Options}, ?TIMEOUT};
+'WAIT_FOR_SOCKET'(_Other, State) ->
     %% Allow to receive async messages
     {next_state, 'WAIT_FOR_SOCKET', State}.
 
+
 %% Notification event coming from client
-'WAIT_FOR_DATA'({data, Data}, #state{socket=S} = State) ->
-    logger:log({debug, "commander: state 3"}),
-    ok = gen_tcp:send(S, Data),
+'WAIT_FOR_DATA'({data, Data}, #state{socket=S, socket_options=Options} = State) ->
+    ok = mijktcp:send(S, Data, Options),
     {next_state, 'WAIT_FOR_DATA', State, ?TIMEOUT};
-
 'WAIT_FOR_DATA'(timeout, State) ->
-    logger:log({debug, "commander: state 4"}),
-%%    error_logger:error_msg("~p Client connection timeout - closing.\n", [self()]),
-    logger:log({warn, "commander: client connection timeout - closing"}),
     {stop, normal, State};
-
-'WAIT_FOR_DATA'(Data, State) ->
-    logger:log({debug, "commander: state 5"}),
-    io:format("~p Ignoring data: ~p\n", [self(), Data]),
+'WAIT_FOR_DATA'(_Data, State) ->
     {next_state, 'WAIT_FOR_DATA', State, ?TIMEOUT}.
 
 %%-------------------------------------------------------------------------
@@ -125,14 +116,13 @@ handle_sync_event(Event, _From, StateName, StateData) ->
 %%          {stop, Reason, NewStateData}
 %% @private
 %%-------------------------------------------------------------------------
-handle_info({tcp, Socket, Bin}, StateName, #state{socket=Socket} = StateData) ->
+handle_info({_Proto, Socket, Bin}, StateName, #state{socket=Socket, socket_options=Options} = StateData) ->
     % Flow control: enable forwarding of next TCP message
-    inet:setopts(Socket, [{active, once}]),
+    mijktcp:setopts(Socket, [{active, once}], Options),
     ?MODULE:StateName({data, Bin}, StateData);
 
 handle_info({tcp_closed, Socket}, _StateName,
-            #state{socket=Socket, addr=Addr} = StateData) ->
-    error_logger:info_msg("~p Client ~p disconnected.\n", [self(), Addr]),
+            #state{socket=Socket, addr=_Addr} = StateData) ->
     {stop, normal, StateData};
 
 handle_info(_Info, StateName, StateData) ->
@@ -144,8 +134,8 @@ handle_info(_Info, StateName, StateData) ->
 %% Returns: any
 %% @private
 %%-------------------------------------------------------------------------
-terminate(_Reason, _StateName, #state{socket=Socket}) ->
-    (catch gen_tcp:close(Socket)),
+terminate(_Reason, _StateName, #state{socket=Socket, socket_options=Options}) ->
+    (catch mijktcp:close(Socket, Options)),
     ok.
 
 %%-------------------------------------------------------------------------

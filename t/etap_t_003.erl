@@ -31,6 +31,7 @@ start() ->
     io:format("listen port ~p ~n", [ListenPort]),
     etap:is(ConnectStatus, ok, string:concat("Connect to port ",
                                                     integer_to_list(ListenPort))),
+    %mijkutils:sleep(2),
     case ConnectStatus of
         ok         -> 
                         gen_tcp:send(ConnectRet, <<"hello">>),

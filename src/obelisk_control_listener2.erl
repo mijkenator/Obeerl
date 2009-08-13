@@ -27,18 +27,7 @@ start_link(Port, Module) when is_integer(Port), is_atom(Module) ->
     
 
 init(State = #server_state{port=Port}) ->
-    Opts = case application:get_env(obelisk, control_port_tls) of
-        {ok, true} ->
-            [binary, {packet, 2}, {reuseaddr, true}, {keepalive, true},
-            {backlog, 30}, {active, false}, {use_ssl, true},
-            {depth, 2},
-            {certfile,   "../server-cert.pem"}, 
-            {keyfile,    "../server-key.pem"},
-            {cacertfile, "../cacert.pem"}];
-        _          ->
-            [binary, {packet, 2}, {reuseaddr, true}, {keepalive, true},
-            {backlog, 30}, {active, false}]
-    end,
+    Opts = mijkutils:get_obelisk_socket_options(obelisk, control_port_tls),
     case mijktcp:listen(Port, Opts) of
         {ok, LSocket} ->
             NewState = State#server_state{lsocket = LSocket, socket_o = Opts},
@@ -56,7 +45,9 @@ accept_loop({Server, LSocket, Loop, Opts}) ->
     % with the echo loop, to avoid blocking
     case mijktcp:is_ssl(Opts) of
         true  ->
-            ssl:ssl_accept(Socket)
+            ssl:ssl_accept(Socket);
+        _     ->
+            ok
     end,
     gen_server:cast(Server, {accepted, self()}),
     call_loop(Loop, Socket, Opts).
@@ -74,15 +65,9 @@ code_change(_OldVersion, Library, _Extra) -> {ok, Library}.
 
 
 loop_func(Socket, Opts) ->
-    logger:log({debug, "loop func"}),
-    case mijktcp:recv(Socket, 0, Opts) of
-        {ok, Data} ->
-            logger:log({debug, string:concat("recv data: ", binary_to_list(Data))}),
-            mijktcp:send(Socket, Data, Opts),
-            loop_func(Socket, Opts);
-        {error, closed} ->
-            ok
-    end.
+    {ok, Pid} = obelisk_app:start_client(Opts),
+    mijktcp:controlling_process(Socket, Pid, Opts),
+    obelisk_commander:set_socket(Pid, Socket, Opts).
 
 call_loop({M, F}, Socket, Opts) ->
     M:F(Socket, Opts);

@@ -119,15 +119,18 @@ handle_sync_event(Event, _From, StateName, StateData) ->
 %%-------------------------------------------------------------------------
 handle_info({tcp, Socket, Bin}, StateName, #state{socket=Socket} = StateData) ->
     % Flow control: enable forwarding of next TCP message
+    error_logger:error_msg("Handle INFO 1"),
     inet:setopts(Socket, [{active, once}]),
     ?MODULE:StateName({data, Bin}, StateData);
 
 handle_info({tcp_closed, Socket}, _StateName,
             #state{socket=Socket, addr=Addr} = StateData) ->
+    error_logger:error_msg("Handle INFO 2"),
     error_logger:info_msg("~p Client ~p disconnected.\n", [self(), Addr]),
     {stop, normal, StateData};
 
 handle_info(_Info, StateName, StateData) ->
+    error_logger:error_msg("Handle INFO 3"),
     {noreply, StateName, StateData}.
 
 %%-------------------------------------------------------------------------
