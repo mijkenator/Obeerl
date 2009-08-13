@@ -3,10 +3,10 @@
   {description, "Obelisk command server"},
   {vsn, "1.0"},
   {id, "obelisk"},
-  {modules,      [obelisk_listener, obelisk_listener2, obelisk_commander, mijkcfg,
-                  logger, obelisk_control_listener2]},
-  {registered,   [obelisk_listener2, tcp_server_sup, obelisk_listener2, obelisk_config,
-                  obelisk_logger, obelisk_control_listener2]},
+  {modules,      [obelisk_listener, obelisk_commander, mijkcfg,
+                  logger]},
+  {registered,   [tcp_server_sup, obelisk_config,
+                  obelisk_logger]},
   {applications, [kernel, stdlib]},
   %%
   %% mod: Specify the module name to start the application, plus args

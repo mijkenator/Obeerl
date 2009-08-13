@@ -1,4 +1,4 @@
--module(obelisk_control_listener2).
+-module(obelisk_listener2).
 -author('mijkenator@gmail.com').
 
 -behaviour(gen_server).
@@ -27,7 +27,7 @@ start_link(Port, Module) when is_integer(Port), is_atom(Module) ->
     
 
 init(State = #server_state{port=Port}) ->
-    Opts = mijkutils:get_obelisk_socket_options(obelisk, control_port_tls),
+    Opts = mijkutils:get_obelisk_socket_options(obelisk, listen_port_tls),
     case mijktcp:listen(Port, Opts) of
         {ok, LSocket} ->
             NewState = State#server_state{lsocket = LSocket, socket_o = Opts},
