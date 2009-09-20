@@ -50,6 +50,9 @@ start() ->
     T_two = rfc4627:encode({obj, ExecRet}),
     io:format("Encode exam ~p ~n", [ T_two ]),
     
+    TestList = [111,98,101,95,112,114,111,116,111,95,97,117,116,104,58,108,111,103,105,110],
+    io:format("List 1 ~p ~n", [ TestList ]),
+    
     etap:end_tests().
     
 
