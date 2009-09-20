@@ -19,7 +19,8 @@
 -record(state, {
                 socket,    % client socket
                 addr,       % client address
-                socket_options
+                socket_options,
+                login_info = nologin %login flag
                }).
 
 -define(TIMEOUT, 120000).
@@ -78,8 +79,15 @@ init(Opts) ->
 
 
 %% Notification event coming from client
-'WAIT_FOR_DATA'({data, Data}, #state{socket=S, socket_options=Options} = State) ->
+'WAIT_FOR_DATA'({data, Data}, #state{socket=S, socket_options=Options, login_info=LoginFlag} = State) ->
     ok = mijktcp:send(S, Data, Options),
+    %ok = mijktcp:send(S,
+    %    obelisk_command_executor:exec_command(Data, LoginFlag), Options),
+    %
+    % case obelisk_command_executor:exec_command(Data, LoginFlag)
+    %   {ok, NewLoginFlag, execData}
+    %   {error}
+    %
     {next_state, 'WAIT_FOR_DATA', State, ?TIMEOUT};
 'WAIT_FOR_DATA'(timeout, State) ->
     {stop, normal, State};
