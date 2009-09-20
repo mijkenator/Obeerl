@@ -80,15 +80,17 @@ init(Opts) ->
 
 %% Notification event coming from client
 'WAIT_FOR_DATA'({data, Data}, #state{socket=S, socket_options=Options, login_info=LoginFlag} = State) ->
-    ok = mijktcp:send(S, Data, Options),
-    %ok = mijktcp:send(S,
-    %    obelisk_command_executor:exec_command(Data, LoginFlag), Options),
-    %
-    % case obelisk_command_executor:exec_command(Data, LoginFlag)
-    %   {ok, NewLoginFlag, execData}
-    %   {error}
-    %
-    {next_state, 'WAIT_FOR_DATA', State, ?TIMEOUT};
+    io:format("LoginFlag ~p ~n", [LoginFlag]),
+    case obelisk_proto:is_command(Data) of
+        {ok, Command}   ->
+            {ok, NewLoginFlag, CommandResponse} =
+                obelisk_command_executor:exec_command(Command, LoginFlag),
+            ok = mijktcp:send(S, rfc4627:encode({obj, CommandResponse}), Options),
+            {next_state, 'WAIT_FOR_DATA', State#state{login_info=NewLoginFlag}, ?TIMEOUT};
+        {error, Reason} -> % work as echo server
+            ok = mijktcp:send(S, Data, Options),
+            {next_state, 'WAIT_FOR_DATA', State, ?TIMEOUT}
+    end;
 'WAIT_FOR_DATA'(timeout, State) ->
     {stop, normal, State};
 'WAIT_FOR_DATA'(_Data, State) ->

@@ -28,7 +28,7 @@ exec_command(Command, LoginFlag) when LoginFlag =:= login ->
         {ok, "logout"} ->
             {ok, nologin, [{ok, "logged off"}]};
         _ ->
-            {ok, login, obelisk_proto:exec_command(Data)}
+            {ok, login, obelisk_proto:exec_command_wc(Command)}
     end;
 exec_command(Command, LoginFlag) when LoginFlag =:= nologin ->
     case obelisk_proto:get_value_by_name("name",Command) of
@@ -39,5 +39,4 @@ exec_command(Command, LoginFlag) when LoginFlag =:= nologin ->
             end;
         _ ->
             {ok, nologin, [{error, "login first please"}]}
-    end;
-    .
+    end.

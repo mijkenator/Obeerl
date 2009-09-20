@@ -17,7 +17,11 @@ start() ->
     
     ValidCommand = "{\"type\":\"command\",\"name\":\"login\",\"data\":{\"login\":\"xxxx\",
         \"password\":\"xxxxx\"},\"multi\":\"val1\",\"multi\":\"val2\"}",
+    ValidCommand2 = "{\"type\":\"command\",\"name\":\"logincheg\",\"data\":{\"login\":\"xxxx\",
+        \"password\":\"xxxxx\"},\"multi\":\"val1\",\"multi\":\"val2\"}",
     InValidCommand = "{\"type\":\"command\",\"name\":,\"data\":{\"login\":\"xxxx\",\"password\":\"xxxxx\"}}",
+    
+    
     {ValidState, ValidRet} = obelisk_proto:is_command(ValidCommand),
     {InValidState, InValidRet} = obelisk_proto:is_command(InValidCommand),
     io:format("ValidRet ~p ~n", [ValidRet]),
@@ -31,8 +35,20 @@ start() ->
     etap:is(obelisk_proto:get_all_values_by_name("multi",ValidRet), ["val1","val2"], "find all 'multi' values"),
     etap:is(obelisk_proto:get_all_values_by_name("nonex",ValidRet), [], "find values of not existing attr"),
     
+    ExecRet2 = obelisk_proto:exec_command(ValidCommand2),
+    io:format("ExecRet2 ~p ~n", [ExecRet2]),
+    
     ExecRet = obelisk_proto:exec_command(ValidCommand),
     io:format("ExecRet ~p ~n", [ExecRet]),
+    
+    ExecRetIC = obelisk_proto:exec_command(InValidCommand),
+    io:format("ExecRetIC ~p ~n", [ExecRetIC]),
+    
+    io:format("E1~n"),
+    T_one = rfc4627:encode({obj, [{one, two}]}),
+    io:format("E2~n"),
+    T_two = rfc4627:encode({obj, ExecRet}),
+    io:format("Encode exam ~p ~n", [ T_two ]),
     
     etap:end_tests().
     
