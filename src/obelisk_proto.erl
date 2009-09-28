@@ -3,7 +3,7 @@
 
 -export([is_command/1, get_value_by_name/2,
         get_all_values_by_name/2,
-        exec_command/1, exec_command_wc/1
+        exec_command/1, exec_command_wc/1,
         known_commands/0]).
 
 
@@ -41,7 +41,7 @@ is_command(String) ->
             {error, Reason}
     end.
 
-get_value_by_name(Name,[]) ->
+get_value_by_name(_,[]) ->
     {error, "not found"};
 get_value_by_name(Name,[H|T]) ->
     case H of

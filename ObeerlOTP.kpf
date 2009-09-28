@@ -4,6 +4,4 @@
 <preference-set idref="118aee74-1bb1-45d5-a8b2-c709ab5fba88">
   <boolean id="import_live">1</boolean>
 </preference-set>
-<preference-set idref="118aee74-1bb1-45d5-a8b2-c709ab5fba88/t/etap_t_003.erl">
-</preference-set>
 </project>

@@ -87,7 +87,4 @@ git push origin master
 
 git rm ebin/\*.beam
 
------------------------------
-
-
 git pull
