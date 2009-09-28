@@ -39,12 +39,12 @@ str_like(String, RegExp) ->
 get_obelisk_socket_options(AppName, PortName) ->
     case application:get_env(AppName, PortName) of
         {ok, true} ->
-            [binary, {packet, 2}, {reuseaddr, true}, {keepalive, true},
+            [binary, {packet, 0}, {reuseaddr, true}, {keepalive, true},
             {backlog, 30}, {active, false}, {use_ssl, true},
             {depth, 2},
             {certfile,   "../server-cert.pem"}, 
             {keyfile,    "../server-key.pem"},
             {cacertfile, "../cacert.pem"}];
         _          ->
-            [binary, {packet, 2}, {active, false}, {use_ssl, false}]
+            [binary, {packet, 0}, {active, false}, {use_ssl, false}]
     end.
