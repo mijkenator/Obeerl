@@ -18,7 +18,7 @@
         {listen_port,  2223},
         {listen_port_tls, false},
         {control_port, 2225},
-        {control_port_tls, true}
+        {control_port_tls, false}
         ]}
  ]
 }.

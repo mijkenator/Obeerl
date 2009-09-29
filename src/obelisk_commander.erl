@@ -70,7 +70,7 @@ init(Opts) ->
 %%-------------------------------------------------------------------------
 %'WAIT_FOR_SOCKET'({socket_ready, Socket}, #state{socket_options=Options} = State) when is_port(Socket) ->
 'WAIT_FOR_SOCKET'({socket_ready, Socket}, #state{socket_options=Options} = State) ->
-    mijktcp:setopts(Socket, [{active, once}, {packet, 2}, binary], Options),
+    mijktcp:setopts(Socket, [{active, once}, {packet, 0}, binary], Options),
     {ok, {IP, _Port}} = mijktcp:peername(Socket, Options),
     {next_state, 'WAIT_FOR_DATA', State#state{socket=Socket, addr=IP, socket_options=Options}, ?TIMEOUT};
 'WAIT_FOR_SOCKET'(_Other, State) ->
@@ -85,7 +85,8 @@ init(Opts) ->
         {ok, Command}   ->
             {ok, NewLoginFlag, CommandResponse} =
                 obelisk_command_executor:exec_command(Command, LoginFlag),
-            ok = mijktcp:send(S, rfc4627:encode({obj, CommandResponse}), Options),
+            io:format("CommandResponse ~p ~n", [CommandResponse]),
+            ok = mijktcp:send(S, string:concat(rfc4627:encode({obj, CommandResponse}), "\n\r"), Options),
             {next_state, 'WAIT_FOR_DATA', State#state{login_info=NewLoginFlag}, ?TIMEOUT};
         {error, Reason} -> % work as echo server
             ok = mijktcp:send(S, Data, Options),

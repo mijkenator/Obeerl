@@ -26,7 +26,7 @@ is_command(JSONString) ->
 exec_command(Command, LoginFlag) when LoginFlag =:= login ->
     case obelisk_proto:get_value_by_name("name",Command) of
         {ok, "logout"} ->
-            {ok, nologin, [{ok, "logged off"}]};
+            {ok, nologin, [{ok, 'logged off'}]};
         _ ->
             {ok, login, obelisk_proto:exec_command_wc(Command)}
     end;
@@ -34,9 +34,9 @@ exec_command(Command, LoginFlag) when LoginFlag =:= nologin ->
     case obelisk_proto:get_value_by_name("name",Command) of
         {ok, "login"} ->
             case obelisk_proto:exec_command_wc(Command) of
-                [{ok,_}|_]    -> {ok, login, [{ok, "Access granted"}]};
+                [{ok,_}|_]    -> {ok, login, [{ok, 'Access granted'}]};
                 Fail          -> {ok, nologin, [{error, Fail}]}
             end;
         _ ->
-            {ok, nologin, [{error, "login first please"}]}
+            {ok, nologin, [{error, 'login first please'}]}
     end.
