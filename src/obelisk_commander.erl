@@ -87,7 +87,11 @@ init(Opts) ->
                 obelisk_command_executor:exec_command(Command, LoginFlag),
             io:format("CommandResponse ~p ~n", [CommandResponse]),
             ok = mijktcp:send(S, string:concat(rfc4627:encode({obj, CommandResponse}), "\n\r"), Options),
-            {next_state, 'WAIT_FOR_DATA', State#state{login_info=NewLoginFlag}, ?TIMEOUT};
+            case NewLoginFlag of
+                nologin when LoginFlag =:= login
+                    -> {stop, normal, State#state{login_info=NewLoginFlag} };
+                _   -> {next_state, 'WAIT_FOR_DATA', State#state{login_info=NewLoginFlag}, ?TIMEOUT}
+            end;
         {error, Reason} -> % work as echo server
             ok = mijktcp:send(S, Data, Options),
             {next_state, 'WAIT_FOR_DATA', State, ?TIMEOUT}
