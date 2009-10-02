@@ -1,6 +1,6 @@
 -module(logger_funcs).
 
--export([get_loglevel/1, get_logger/1, logprint/4]).
+-export([get_loglevel/1, get_logger/1, logprint/4, io_format_wrap/3]).
 
 get_loglevel(CfgPid) ->
     case gen_server:call(CfgPid, {search, loglevel}) of
@@ -41,9 +41,15 @@ logprint(S, LogLevel, Type, Message) ->
         _                             -> false
     end,
     case PrintFlag of
-        true  ->
-            {{Year,Month,Day},{Hour,Min,Sec}} = calendar:now_to_datetime(erlang:now()),
-            io:format(S, "~-15w ~2B/~2B/~4B ~2B:~2.10.0B:~2.10.0B  ~p ~n",
-            [Type, Month, Day, Year, Hour, Min, Sec, Message]);
+        true  -> io_format_wrap(S, Type, Message);
         false -> void
     end.
+    
+io_format_wrap(S, Type, {advlog, String, Message}) when is_list(Message) ->
+    {{Year,Month,Day},{Hour,Min,Sec}} = calendar:now_to_datetime(erlang:now()),
+    io:format(S, string:concat("~-15w ~2B/~2B/~4B ~2B:~2.10.0B:~2.10.0B  ", String),
+    [Type, Month, Day, Year, Hour, Min, Sec] ++ Message);
+io_format_wrap(S, Type, Message) ->
+    {{Year,Month,Day},{Hour,Min,Sec}} = calendar:now_to_datetime(erlang:now()),
+    io:format(S, "~-15w ~2B/~2B/~4B ~2B:~2.10.0B:~2.10.0B  ~p ~n",
+    [Type, Month, Day, Year, Hour, Min, Sec, Message]).

@@ -80,8 +80,7 @@ init(Opts) ->
 
 %% Notification event coming from client
 'WAIT_FOR_DATA'({data, Data}, #state{socket=S, socket_options=Options, login_info=LoginFlag} = State) ->
-    io:format("LoginFlag ~p ~n", [LoginFlag]),
-    case obelisk_proto:is_command(Data) of
+    try obelisk_proto:is_command(Data) of
         {ok, Command}   ->
             {ok, NewLoginFlag, CommandResponse} =
                 obelisk_command_executor:exec_command(Command, LoginFlag),
@@ -92,9 +91,13 @@ init(Opts) ->
                     -> {stop, normal, State#state{login_info=NewLoginFlag} };
                 _   -> {next_state, 'WAIT_FOR_DATA', State#state{login_info=NewLoginFlag}, ?TIMEOUT}
             end;
-        {error, Reason} -> % work as echo server
+        {error, _Reason} -> % work as echo server
             ok = mijktcp:send(S, Data, Options),
             {next_state, 'WAIT_FOR_DATA', State, ?TIMEOUT}
+    catch
+        _ : Error ->
+            gen_server:call(logger, {error, {advlog, "~p ~p ~n", ['proto error: ', Error]}}),
+            {stop, normal, State}
     end;
 'WAIT_FOR_DATA'(timeout, State) ->
     {stop, normal, State};
