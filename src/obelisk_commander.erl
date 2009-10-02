@@ -96,7 +96,7 @@ init(Opts) ->
             {next_state, 'WAIT_FOR_DATA', State, ?TIMEOUT}
     catch
         _ : Error ->
-            gen_server:call(logger, {error, {advlog, "~p ~p ~n", ['proto error: ', Error]}}),
+            gen_server:call(logger, {error, {advlog, "~p ~p ~n", ['commander proto error: ', Error]}}),
             {stop, normal, State}
     end;
 'WAIT_FOR_DATA'(timeout, State) ->
