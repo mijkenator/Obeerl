@@ -17,7 +17,9 @@ known_commands() ->
         {"login2", "auth", "login"},
         {"login", "obe_proto_auth", "login_step2"},
         {"login", "obe_proto_auth", "login_step3"},
-        {"ls","command_linux", "ls"}
+        {"ls","command_linux", "ls"},
+        {"ll","command_linux", "ll"},
+        {"pwd","command_linux", "pwd"}
     ].
 
 

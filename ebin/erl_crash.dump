@@ -1,46 +1,46 @@
 =erl_crash_dump:0.1
-Thu Jul 30 12:23:01 2009
+Sat Oct  3 15:32:43 2009
 Slogan: init terminating in do_boot ()
-System version: Erlang (BEAM) emulator version 5.6.4 [source] [smp:2] [async-threads:0] [hipe] [kernel-poll:false]
-Compiled: Sat Oct 25 19:13:31 2008
-Atoms: 1539
+System version: Erlang (BEAM) emulator version 5.6.5 [source] [smp:2] [async-threads:0] [hipe] [kernel-poll:false]
+Compiled: Tue Apr 21 12:53:53 2009
+Atoms: 1718
 =memory
-total: 1201096
-processes: 183876
-processes_used: 176148
-system: 1017220
-atom: 87985
-atom_used: 61782
-binary: 0
-code: 194207
+total: 1259176
+processes: 190140
+processes_used: 182412
+system: 1069036
+atom: 92341
+atom_used: 68716
+binary: 96
+code: 239875
 ets: 26972
 =hash_table:atom_tab
 size: 2411
-used: 1154
-objs: 1539
-depth: 5
+used: 1243
+objs: 1718
+depth: 6
 =index_table:atom_tab
 size: 2048
 limit: 1048576
-entries: 1539
+entries: 1718
 =hash_table:module_code
 size: 47
-used: 4
-objs: 6
+used: 7
+objs: 8
 depth: 2
 =index_table:module_code
 size: 1024
 limit: 65536
-entries: 6
+entries: 8
 =hash_table:export_list
 size: 797
-used: 529
-objs: 858
+used: 544
+objs: 916
 depth: 5
 =index_table:export_list
 size: 1024
 limit: 65536
-entries: 858
+entries: 916
 =hash_table:secondary_export_table
 size: 97
 used: 0
@@ -52,10 +52,10 @@ used: 2
 objs: 2
 depth: 1
 =hash_table:fun_table
-size: 23
-used: 8
-objs: 11
-depth: 2
+size: 47
+used: 24
+objs: 33
+depth: 3
 =hash_table:node_table
 size: 11
 used: 1
@@ -69,28 +69,28 @@ depth: 1
 =allocated_areas
 sys_misc: 57060
 static: 483328
-atom_space: 32772 6593
+atom_space: 32772 9195
 atom_table: 17917
 module_table: 4368
 export_table: 7368
 register_table: 108
-fun_table: 154
+fun_table: 250
 module_refs: 1024
-loaded_code: 138989
+loaded_code: 180449
 dist_table: 171
 node_table: 131
 bits_bufs_size: 0
 bif_timer: 40028
 link_lh: 0
 proc: 7712 800
-atom_entry: 37296 37272
-export_entry: 41480 41384
-module_entry: 832 272
+atom_entry: 41652 41604
+export_entry: 44372 44180
+module_entry: 832 352
 reg_proc: 512 80
 monitor_sh: 28 28
 nlink_sh: 512 128
 proc_list: 28 28
-fun_entry: 1152 648
+fun_entry: 2276 1884
 db_tab: 2592 288
 driver_event_data_state: 28 28
 driver_select_data_state: 28 28
@@ -108,6 +108,7 @@ option sbct: 524288
 option asbcst: 4145152
 option rsbcst: 90
 option rsbcmt: 80
+option rmbcmt: 100
 option mmbcs: 131072
 option mmsbc: 256
 option mmmbc: 10
@@ -132,8 +133,8 @@ sbcs sys_alloc carriers: 0
 sbcs carriers size: 0 0 0
 sbcs mseg carriers size: 0
 sbcs sys_alloc carriers size: 0
-temp_alloc calls: 855
-temp_free calls: 855
+temp_alloc calls: 1077
+temp_free calls: 1077
 temp_realloc calls: 3
 mseg_alloc calls: 0
 mseg_dealloc calls: 0
@@ -150,6 +151,7 @@ option sbct: 524288
 option asbcst: 4145152
 option rsbcst: 90
 option rsbcmt: 80
+option rmbcmt: 100
 option mmbcs: 131072
 option mmsbc: 256
 option mmmbc: 10
@@ -173,8 +175,8 @@ sbcs sys_alloc carriers: 0
 sbcs carriers size: 0 0 0
 sbcs mseg carriers size: 0
 sbcs sys_alloc carriers size: 0
-temp_alloc calls: 15
-temp_free calls: 15
+temp_alloc calls: 24
+temp_free calls: 24
 temp_realloc calls: 0
 mseg_alloc calls: 0
 mseg_dealloc calls: 0
@@ -191,6 +193,7 @@ option sbct: 524288
 option asbcst: 4145152
 option rsbcst: 90
 option rsbcmt: 80
+option rmbcmt: 100
 option mmbcs: 131072
 option mmsbc: 256
 option mmmbc: 10
@@ -232,6 +235,7 @@ option sbct: 524288
 option asbcst: 4145152
 option rsbcst: 80
 option rsbcmt: 80
+option rmbcmt: 50
 option mmbcs: 65536
 option mmsbc: 256
 option mmmbc: 5
@@ -256,8 +260,8 @@ sbcs sys_alloc carriers: 0
 sbcs carriers size: 0 0 0
 sbcs mseg carriers size: 0
 sbcs sys_alloc carriers size: 0
-sl_alloc calls: 2
-sl_free calls: 2
+sl_alloc calls: 3
+sl_free calls: 3
 sl_realloc calls: 0
 mseg_alloc calls: 0
 mseg_dealloc calls: 0
@@ -274,6 +278,7 @@ option sbct: 524288
 option asbcst: 4145152
 option rsbcst: 80
 option rsbcmt: 80
+option rmbcmt: 50
 option mmbcs: 65536
 option mmsbc: 256
 option mmmbc: 5
@@ -316,6 +321,7 @@ option sbct: 524288
 option asbcst: 4145152
 option rsbcst: 20
 option rsbcmt: 80
+option rmbcmt: 50
 option mmbcs: 65536
 option mmsbc: 256
 option mmmbc: 5
@@ -323,8 +329,8 @@ option lmbcs: 5242880
 option smbcs: 524288
 option mbcgs: 10
 option as: bf
-mbcs blocks: 2 2 2
-mbcs blocks size: 80 80 80
+mbcs blocks: 5 6 6
+mbcs blocks size: 176 224 224
 mbcs carriers: 1 1 1
 mbcs mseg carriers: 0
 mbcs sys_alloc carriers: 1
@@ -339,8 +345,8 @@ sbcs sys_alloc carriers: 0
 sbcs carriers size: 0 0 0
 sbcs mseg carriers size: 0
 sbcs sys_alloc carriers size: 0
-std_alloc calls: 2
-std_free calls: 0
+std_alloc calls: 8
+std_free calls: 3
 std_realloc calls: 0
 mseg_alloc calls: 0
 mseg_dealloc calls: 0
@@ -357,6 +363,7 @@ option sbct: 524288
 option asbcst: 4145152
 option rsbcst: 20
 option rsbcmt: 80
+option rmbcmt: 50
 option mmbcs: 65536
 option mmsbc: 256
 option mmmbc: 5
@@ -365,7 +372,7 @@ option smbcs: 524288
 option mbcgs: 10
 option as: bf
 mbcs blocks: 19 19 19
-mbcs blocks size: 1872 1872 1872
+mbcs blocks size: 2384 2424 2424
 mbcs carriers: 1 1 1
 mbcs mseg carriers: 0
 mbcs sys_alloc carriers: 1
@@ -380,8 +387,8 @@ sbcs sys_alloc carriers: 0
 sbcs carriers size: 0 0 0
 sbcs mseg carriers size: 0
 sbcs sys_alloc carriers size: 0
-std_alloc calls: 21
-std_free calls: 2
+std_alloc calls: 22
+std_free calls: 3
 std_realloc calls: 0
 mseg_alloc calls: 0
 mseg_dealloc calls: 0
@@ -393,11 +400,12 @@ sys_realloc calls: 0
 versions: 0.9 2.2
 option e: true
 option t: false
-option ramv: true
+option ramv: false
 option sbct: 4294967295
 option asbcst: 0
 option rsbcst: 0
 option rsbcmt: 0
+option rmbcmt: 0
 option mmbcs: 2097152
 option mmsbc: 0
 option mmmbc: 0
@@ -405,8 +413,8 @@ option lmbcs: 10485760
 option smbcs: 1048576
 option mbcgs: 10
 option as: aobf
-mbcs blocks: 184 184 184
-mbcs blocks size: 1192888 1192888 1192888
+mbcs blocks: 199 199 199
+mbcs blocks size: 1244000 1244000 1244000
 mbcs carriers: 1 1 1
 mbcs mseg carriers: 0
 mbcs sys_alloc carriers: 1
@@ -421,9 +429,9 @@ sbcs sys_alloc carriers: 0
 sbcs carriers size: 0 0 0
 sbcs mseg carriers size: 0
 sbcs sys_alloc carriers size: 0
-ll_alloc calls: 203
-ll_free calls: 19
-ll_realloc calls: 0
+ll_alloc calls: 200
+ll_free calls: 1
+ll_realloc calls: 22
 mseg_alloc calls: 0
 mseg_dealloc calls: 0
 mseg_realloc calls: 0
@@ -439,6 +447,7 @@ option sbct: 524288
 option asbcst: 4145152
 option rsbcst: 50
 option rsbcmt: 80
+option rmbcmt: 50
 option mmbcs: 262144
 option mmsbc: 256
 option mmmbc: 100
@@ -447,8 +456,8 @@ option smbcs: 524288
 option mbcgs: 10
 option mbsd: 3
 option as: gf
-mbcs blocks: 3 7 7
-mbcs blocks size: 3984 8400 8400
+mbcs blocks: 5 10 10
+mbcs blocks size: 10248 12200 12200
 mbcs carriers: 1 1 1
 mbcs mseg carriers: 0
 mbcs sys_alloc carriers: 1
@@ -463,8 +472,8 @@ sbcs sys_alloc carriers: 0
 sbcs carriers size: 0 0 0
 sbcs mseg carriers size: 0
 sbcs sys_alloc carriers size: 0
-eheap_alloc calls: 12
-eheap_free calls: 9
+eheap_alloc calls: 19
+eheap_free calls: 14
 eheap_realloc calls: 0
 mseg_alloc calls: 0
 mseg_dealloc calls: 0
@@ -481,6 +490,7 @@ option sbct: 524288
 option asbcst: 4145152
 option rsbcst: 50
 option rsbcmt: 80
+option rmbcmt: 50
 option mmbcs: 262144
 option mmsbc: 256
 option mmmbc: 100
@@ -490,7 +500,7 @@ option mbcgs: 10
 option mbsd: 3
 option as: gf
 mbcs blocks: 0 13 13
-mbcs blocks size: 0 1616 1616
+mbcs blocks size: 0 1624 1624
 mbcs carriers: 1 1 1
 mbcs mseg carriers: 0
 mbcs sys_alloc carriers: 1
@@ -523,6 +533,7 @@ option sbct: 524288
 option asbcst: 4145152
 option rsbcst: 20
 option rsbcmt: 80
+option rmbcmt: 50
 option mmbcs: 65536
 option mmsbc: 256
 option mmmbc: 100
@@ -564,6 +575,7 @@ option sbct: 524288
 option asbcst: 4145152
 option rsbcst: 20
 option rsbcmt: 80
+option rmbcmt: 50
 option mmbcs: 65536
 option mmsbc: 256
 option mmmbc: 100
@@ -599,14 +611,14 @@ sys_realloc calls: 0
 =allocator:fix_alloc
 option e: true
 proc: 7712 800
-atom_entry: 37296 37272
-export_entry: 41480 41384
-module_entry: 832 272
+atom_entry: 41652 41604
+export_entry: 44372 44180
+module_entry: 832 352
 reg_proc: 512 80
 monitor_sh: 28 28
 nlink_sh: 512 128
 proc_list: 28 28
-fun_entry: 1152 648
+fun_entry: 2276 1884
 db_tab: 2592 288
 driver_event_data_state: 28 28
 driver_select_data_state: 28 28
@@ -619,6 +631,7 @@ option sbct: 524288
 option asbcst: 4145152
 option rsbcst: 20
 option rsbcmt: 80
+option rmbcmt: 50
 option mmbcs: 65536
 option mmsbc: 256
 option mmmbc: 50
@@ -626,8 +639,8 @@ option lmbcs: 5242880
 option smbcs: 524288
 option mbcgs: 10
 option as: bf
-mbcs blocks: 0 1 1
-mbcs blocks size: 0 72 72
+mbcs blocks: 1 2 2
+mbcs blocks size: 96 176 176
 mbcs carriers: 1 1 1
 mbcs mseg carriers: 0
 mbcs sys_alloc carriers: 1
@@ -642,8 +655,8 @@ sbcs sys_alloc carriers: 0
 sbcs carriers size: 0 0 0
 sbcs mseg carriers size: 0
 sbcs sys_alloc carriers size: 0
-binary_alloc calls: 2
-binary_free calls: 2
+binary_alloc calls: 4
+binary_free calls: 3
 binary_realloc calls: 0
 mseg_alloc calls: 0
 mseg_dealloc calls: 0
@@ -660,6 +673,7 @@ option sbct: 524288
 option asbcst: 4145152
 option rsbcst: 20
 option rsbcmt: 80
+option rmbcmt: 50
 option mmbcs: 65536
 option mmsbc: 256
 option mmmbc: 50
@@ -701,6 +715,7 @@ option sbct: 524288
 option asbcst: 4145152
 option rsbcst: 20
 option rsbcmt: 80
+option rmbcmt: 50
 option mmbcs: 65536
 option mmsbc: 256
 option mmmbc: 10
@@ -708,8 +723,8 @@ option lmbcs: 5242880
 option smbcs: 524288
 option mbcgs: 10
 option as: bf
-mbcs blocks: 1 2 2
-mbcs blocks size: 96 368 368
+mbcs blocks: 1 4 4
+mbcs blocks size: 96 8648 8648
 mbcs carriers: 1 1 1
 mbcs mseg carriers: 0
 mbcs sys_alloc carriers: 1
@@ -724,8 +739,8 @@ sbcs sys_alloc carriers: 0
 sbcs carriers size: 0 0 0
 sbcs mseg carriers size: 0
 sbcs sys_alloc carriers size: 0
-driver_alloc calls: 3
-driver_free calls: 2
+driver_alloc calls: 8
+driver_free calls: 7
 driver_realloc calls: 0
 mseg_alloc calls: 0
 mseg_dealloc calls: 0
@@ -742,6 +757,7 @@ option sbct: 524288
 option asbcst: 4145152
 option rsbcst: 20
 option rsbcmt: 80
+option rmbcmt: 50
 option mmbcs: 65536
 option mmsbc: 256
 option mmmbc: 10
@@ -805,35 +821,35 @@ State: Running
 Name: init
 Spawned as: otp_ring0:start/2
 Spawned by: []
-Started: Thu Jul 30 12:23:01 2009
+Started: Sat Oct  3 15:32:43 2009
 Message queue length: 0
 Number of heap fragments: 0
 Heap fragment data: 0
 Link list: [<0.2.0>]
-Reductions: 111
-Stack+heap: 377
+Reductions: 141
+Stack+heap: 610
 OldHeap: 377
-Heap unused: 124
+Heap unused: 451
 OldHeap unused: 377
-Program counter: 0x00271780 (init:boot_loop/2 + 32)
-CP: 0x0027157c (init:things_to_string/1 + 68)
+Program counter: 0x006bbc10 (init:boot_loop/2 + 32)
+CP: 0x00000000 (invalid)
 =proc:<0.2.0>
 State: Waiting
 Name: erl_prim_loader
 Spawned as: erlang:apply/2
 Spawned by: <0.1.0>
-Started: Thu Jul 30 12:23:01 2009
+Started: Sat Oct  3 15:32:43 2009
 Message queue length: 0
 Number of heap fragments: 0
 Heap fragment data: 0
-Link list: [#Port<0.1>, <0.0.0>]
-Reductions: 292
-Stack+heap: 233
-OldHeap: 0
-Heap unused: 109
-OldHeap unused: 0
-Program counter: 0x00288370 (erl_prim_loader:loop/3 + 88)
-CP: 0x082429c0 (<terminate process normally>)
+Link list: [<0.0.0>, #Port<0.1>]
+Reductions: 622
+Stack+heap: 610
+OldHeap: 610
+Heap unused: 18
+OldHeap unused: 610
+Program counter: 0x006cbc00 (erl_prim_loader:loop/3 + 92)
+CP: 0x00000000 (invalid)
 arity = 0
 =port:#Port<0.1>
 Slot: 1
@@ -843,113 +859,276 @@ Port controls linked-in driver: efile
 =node:'nonode@nohost'
 =no_distribution
 =loaded_modules
-Current code: 138989
+Current code: 180449
 Old code: 0
 =mod:otp_ring0
 Current size: 620
 =mod:init
-Current size: 31288
+Current size: 34500
 =mod:prim_inet
 Current size: 49900
 =mod:prim_file
 Current size: 21777
+=mod:zlib
+Current size: 6940
+=mod:prim_zip
+Current size: 14356
 =mod:erl_prim_loader
-Current size: 22072
+Current size: 39024
 =mod:erlang
 Current size: 13332
 =fun
-Module: init
-Uniq: 43810633
-Index: 1
-Address: 0x00277a3c
-Native_address: 0x0817e7c0
-Refc: 1
-=fun
-Module: init
-Uniq: 95288932
-Index: 7
-Address: 0x00277760
-Native_address: 0x0817e7c8
-Refc: 1
-=fun
 Module: erl_prim_loader
-Uniq: 34939111
-Index: 0
-Address: 0x0028c424
-Native_address: 0x0817e7c8
-Refc: 1
-=fun
-Module: init
-Uniq: 32881995
-Index: 2
-Address: 0x00277a20
-Native_address: 0x0817e7c0
-Refc: 1
-=fun
-Module: init
-Uniq: 45038474
-Index: 0
-Address: 0x00277a58
-Native_address: 0x0817e7c0
-Refc: 1
-=fun
-Module: init
-Uniq: 11308654
-Index: 5
-Address: 0x00277878
-Native_address: 0x0817e7c0
-Refc: 1
-=fun
-Module: init
-Uniq: 63312348
-Index: 4
-Address: 0x002778ec
-Native_address: 0x0817e7c8
-Refc: 2
-=fun
-Module: erl_prim_loader
-Uniq: 115498328
-Index: 1
-Address: 0x0028c3d4
-Native_address: 0x0817e7c8
-Refc: 1
-=fun
-Module: init
-Uniq: 100236574
-Index: 6
-Address: 0x0027777c
-Native_address: 0x0817e7b0
+Uniq: 88016544
+Index: 12
+Address: 0x006d3320
+Native_address: 0x081667b0
 Refc: 1
 =fun
 Module: erlang
 Uniq: 18099081
 Index: 0
-Address: 0x0028f808
-Native_address: 0x0817e7b8
+Address: 0x006c5ec0
+Native_address: 0x081667a0
 Refc: 1
 =fun
 Module: init
-Uniq: 35078212
+Uniq: 97019924
+Index: 7
+Address: 0x006c2358
+Native_address: 0x081667b0
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 81938612
+Index: 8
+Address: 0x006d35bc
+Native_address: 0x081667b0
+Refc: 1
+=fun
+Module: init
+Uniq: 43183525
 Index: 3
-Address: 0x002779ec
-Native_address: 0x0817e7c0
+Address: 0x006c27b8
+Native_address: 0x081667a8
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 75066605
+Index: 3
+Address: 0x006d3978
+Native_address: 0x081667b0
+Refc: 1
+=fun
+Module: prim_zip
+Uniq: 88765944
+Index: 3
+Address: 0x006ca660
+Native_address: 0x081667b0
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 3809279
+Index: 9
+Address: 0x006d34f8
+Native_address: 0x081667b0
+Refc: 1
+=fun
+Module: prim_zip
+Uniq: 81916975
+Index: 2
+Address: 0x006ca69c
+Native_address: 0x081667a0
+Refc: 1
+=fun
+Module: prim_zip
+Uniq: 22533001
+Index: 0
+Address: 0x006ca6d4
+Native_address: 0x081667a0
+Refc: 1
+=fun
+Module: prim_zip
+Uniq: 36346675
+Index: 1
+Address: 0x006ca6b8
+Native_address: 0x081667a0
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 3482243
+Index: 15
+Address: 0x006d2dc8
+Native_address: 0x081667a0
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 129380664
+Index: 4
+Address: 0x006d38b4
+Native_address: 0x081667b0
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 125948878
+Index: 10
+Address: 0x006d3434
+Native_address: 0x081667b0
+Refc: 1
+=fun
+Module: prim_zip
+Uniq: 129835438
+Index: 4
+Address: 0x006ca630
+Native_address: 0x081667b0
+Refc: 1
+=fun
+Module: init
+Uniq: 30540612
+Index: 4
+Address: 0x006c26b8
+Native_address: 0x081667b0
+Refc: 1
+=fun
+Module: init
+Uniq: 42050205
+Index: 2
+Address: 0x006c27ec
+Native_address: 0x081667a8
+Refc: 1
+=fun
+Module: init
+Uniq: 116626438
+Index: 6
+Address: 0x006c2548
+Native_address: 0x08166798
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 11964527
+Index: 13
+Address: 0x006d317c
+Native_address: 0x081667a0
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 32895759
+Index: 1
+Address: 0x006d3b10
+Native_address: 0x081667b0
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 116972459
+Index: 0
+Address: 0x006d3bec
+Native_address: 0x081667b0
+Refc: 1
+=fun
+Module: init
+Uniq: 54206684
+Index: 0
+Address: 0x006c2824
+Native_address: 0x081667a8
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 87958366
+Index: 2
+Address: 0x006d3a44
+Native_address: 0x081667b0
+Refc: 2
+=fun
+Module: init
+Uniq: 52978875
+Index: 1
+Address: 0x006c2808
+Native_address: 0x081667a8
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 18867649
+Index: 18
+Address: 0x006d2a84
+Native_address: 0x081667a0
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 39920865
+Index: 5
+Address: 0x006d3808
+Native_address: 0x081667b0
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 14602659
+Index: 16
+Address: 0x006d2c78
+Native_address: 0x081667a0
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 18748191
+Index: 6
+Address: 0x006d3744
+Native_address: 0x081667b0
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 81251680
+Index: 7
+Address: 0x006d3680
+Native_address: 0x081667b0
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 37900046
+Index: 17
+Address: 0x006d2b44
+Native_address: 0x081667a0
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 49999988
+Index: 11
+Address: 0x006d3370
+Native_address: 0x081667b0
+Refc: 1
+=fun
+Module: erl_prim_loader
+Uniq: 54617620
+Index: 14
+Address: 0x006d30b8
+Native_address: 0x081667a0
+Refc: 1
+=fun
+Module: init
+Uniq: 106655460
+Index: 5
+Address: 0x006c2644
+Native_address: 0x081667a8
 Refc: 1
 =proc_stack:<0.0.0>
-0x0037afe8:SReturn addr 0x82429C0 (<terminate process normally>)
+0x00111b04:SReturn addr 0x8242900 (<terminate process normally>)
 =proc_heap:<0.0.0>
 =proc_stack:<0.2.0>
-0x0037b388:SReturn addr 0x82429C0 (<terminate process normally>)
-y0:H37B028
-y1:P<0.1.0>
-y2:H37B000
-y3:A8:infinity
+0x00113620:SReturn addr 0x8242900 (<terminate process normally>)
+y0:N
+y1:H11236C
+y2:P<0.1.0>
+y3:H1135A4
+y4:A8:infinity
 =proc_heap:<0.2.0>
-37B028:lH37B038|N
-37B038:lI46|N
-37B000:t7:A5:state,A5:efile,N,A4:none,p<0.1>,A8:infinity,A5:false
+11236C:lH1123BC|N
+1123BC:lI46|N
+1135A4:t9:A5:state,A5:efile,N,A4:none,p<0.1>,A8:infinity,A9:undefined,A5:false,H112320
+112320:t4:AA:prim_state,A5:false,A9:undefined,A9:undefined
 =atoms
 linux
 unix
+home
+progname
+root
 'no -path flag'
 'no -id flag'
 'no -hosts flag'
@@ -972,28 +1151,79 @@ disconnect_node
 is_well_formed_list
 crasher
 remote_spawn_error
-foldl
 no_link
 gen_server
 spawn_monitor
 einal
+clean
 file_not_found
 'no server found'
 ebusy
 no_multi_get
 ose_inet
 '-start/3-fun-0-'
-'-get_files/8-fun-0-'
+'-handle_get_files/4-fun-0-'
+'-handle_get_file/3-fun-0-'
+'-handle_get_file/3-fun-1-'
+'-handle_set_primary_archive/3-fun-0-'
+'-handle_release_archives/1-fun-0-'
+'-handle_list_dir/2-fun-0-'
+'-handle_list_dir/2-fun-1-'
+'-handle_read_file_info/2-fun-0-'
+'-handle_read_file_info/2-fun-1-'
+'-handle_get_cwd/2-fun-0-'
+'-handle_get_cwd/2-fun-1-'
+'-efile_multi_get_file_from_port2/8-fun-0-'
+'-prim_set_primary_archive/3-fun-0-'
+'-prim_get_file/2-fun-0-'
+'-prim_list_dir/2-fun-0-'
+'-prim_read_file_info/2-fun-0-'
+'-open_archive/3-fun-0-'
+'-foldl_archive/3-fun-0-'
+normalize
+pathtype
+absname_vr
+volumerelative
+relative
+absolute
 ipv4_addr
 ipv4_address
 ipv4_list
+string_split2
+string_split
+string_match
+no_match
+no_split
+do_name_split
+name_split
 to_strs
 min
 keyins
 keysort
 send_all
 win32
-absolute_filename
+is_basename
+clear_cache
+cache_new
+foldl_archive
+open_archive
+apply_archive
+prim_get_cwd
+archive_read_file_info
+prim_read_file_info
+archive_list_dir
+prim_list_dir
+archive_get_file
+archive
+prim_get_file
+prim_set_primary_archive
+cache
+release
+primary
+prim_do_release_archives
+prim_release_archives
+loader_debug
+prim_init
 port_error
 ll_close
 ll_open_set_bind
@@ -1007,8 +1237,8 @@ inet_get_cwd
 inet_read_file_info
 inet_list_dir
 inet_send_and_rcv
-get_from_port_inet1
-get_from_port_inet
+inet_get_file_from_port1
+inet_get_file_from_port
 inet_timeout_handler
 inet_exit_port
 find_collect
@@ -1023,24 +1253,127 @@ efile_stop_port
 efile_get_cwd
 efile_read_file_info
 efile_list_dir
+efile_release_archives
+efile_set_primary_archive
+efile_get_file_from_port3
 'prim_load port died'
-get_from_port_efile2
-get_from_port_efile1
-get_from_port_efile
-par_get_file
+efile_get_file_from_port2
+efile_get_file_from_port
+efile_par_get_file
 emfile
-multi_get_from_port_efile
+efile_multi_get_file_from_port2
+efile_multi_get_file_from_port
 handle_timeout
-loader_get_cwd
-loader_read_file_info
-loader_list_dir
+handle_exit
+handle_stop
+handle_get_cwd
+handle_read_file_info
+handle_list_dir
+handle_release_archives
+handle_set_primary_archive
+handle_get_file
+handle_get_files
+bad_state
 error_report
 std_error
 enotdir
 enoent
 check_file_result
+release_archives
+set_primary_archive
 get_path
 init_ack
+prim_state
+'-filter_fun/0-fun-0-'
+'-get_zip_input/1-fun-0-'
+'-get_zip_input/1-fun-1-'
+'-get_cd_loop/11-fun-0-'
+'-get_cd_loop/11-fun-1-'
+pwrite_binary
+pwrite_iolist
+skipper
+skip_iolist
+splitter
+split_iolist
+local_file_header_from_bin
+bad_cd_file_header
+cd_file_header_from_bin
+dos_date_time_to_datetime
+add_extra_info
+cd_file_header_to_file_info
+eocd_and_comment_from_bin
+local_time
+calendar
+binary_io
+set_file_info
+prim_file_io
+find_eocd_header
+seek
+bad_eocd
+get_end_of_central_dir
+get_filename_from_b2
+bad_central_directory
+cd_file_header
+get_file_header
+get_cd_loop
+eocd
+get_central_dir
+offset_over_z_data_descriptor
+unsupported_compression
+get_z_all
+bad_local_file_header
+bad_local_file_offset
+local_file_header
+get_z_file
+get_zip_input
+illegal_filter
+primzip_file
+do_foldl
+foldl
+primzip
+do_open
+filter_fun
+prim_zip
+zlib_drv
+need_dictionary
+arg_mem
+arg_bitsz
+arg_method
+filtered
+huffman_only
+arg_strategy
+best_speed
+best_compression
+arg_level
+full
+arg_flush
+collect
+gunzip
+gzip
+unzip
+deflated
+zip
+data_error
+uncompress
+finish
+default
+compress
+getQSize
+getBufSize
+setBufSize
+inflateEnd
+inflate
+inflateReset
+inflateSync
+inflateSetDictionary
+inflateInit
+deflateEnd
+deflate
+deflateParams
+deflateReset
+deflateSetDictionary
+deflateInit
+zlib
 premature_end_of_list
 lists_split
 transform_ldata
@@ -1052,7 +1385,6 @@ int_to_bytes
 file_access
 other
 device
-directory
 regular
 symlink
 file_type
@@ -1081,13 +1413,11 @@ make_symlink_int
 make_symlink
 make_link_int
 make_link
-file_info
 write_file_info_int
 write_file_info
 altname_int
 altname
 read_file_info_int
-read_file_info
 del_dir_int
 del_dir
 make_dir_int
@@ -1372,8 +1702,12 @@ starting
 '-do_boot/2-fun-0-'
 '-par_load_modules/2-fun-0-'
 '-par_load_modules/2-fun-1-'
+'-patch_path/2-lc$^0/1-0-'
+'-patch_dir/2-lc$^0/1-1-'
+'-patch_dir/2-lc$^1/1-0-'
 '-shutdown_timer/1-fun-0-'
-extension
+archive_extension
+objfile_extension
 concat
 set_argument
 get_argument1
@@ -1406,6 +1740,14 @@ erl_scan
 start_it
 start_em
 start_in_kernel
+join
+funny_splitwith
+funny_split
+directory
+file_info
+read_file_info
+patch_dir
+patch_path
 get_var_val
 get_var_value
 extract_var
@@ -1416,7 +1758,6 @@ make_path
 get_files
 par_load_modules
 load_modules
-debug
 'unexpected command in bootfile'
 kernelProcess
 preLoaded
@@ -1492,6 +1833,9 @@ things_to_string
 flatten
 printable_list
 state
+relaxed
+strict
+code_path_choice
 flags_to_atoms_again
 map
 b2s
@@ -1514,6 +1858,7 @@ script_id
 get_argument
 get_plain_arguments
 get_arguments
+debug
 fatal
 boot
 otp_ring0
@@ -1576,6 +1921,11 @@ otp_ring0
 'Date'
 'Connection'
 'Cache-Control'
+characters_to_list_trap_4
+characters_to_list_trap_3
+characters_to_list_trap_2
+characters_to_list_trap_1
+characters_to_utf8_trap
 md5_trap
 empty_out_q
 udp_error
@@ -1700,6 +2050,8 @@ bytearray
 write_u32
 write_u8
 hipe_bifs
+characters_to_list
+characters_to_binary
 decode_packet
 update_element
 bitstring_to_list
@@ -2027,6 +2379,7 @@ unloaded
 unless_suspending
 uniq
 unblock
+utf8
 used
 use_stdio
 unregister
@@ -2262,6 +2615,7 @@ line_length
 line
 lf
 '=<'
+latin1
 last_calls
 large_heap
 label
@@ -2282,6 +2636,7 @@ info_msg
 info
 index
 inconsistent
+incomplete
 inactive
 in_exiting
 in

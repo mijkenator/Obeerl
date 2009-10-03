@@ -142,9 +142,16 @@ handle_info({_Proto, Socket, Bin}, StateName, #state{socket=Socket, socket_optio
 handle_info({tcp_closed, Socket}, _StateName,
             #state{socket=Socket, addr=_Addr} = StateData) ->
     {stop, normal, StateData};
+    
+handle_info({'EXIT', _Pid, _Reason}, StateName, StateData) ->
+    .io:format("Port process terminating 2 ~n"),
+    {next_state, StateName, StateData, ?TIMEOUT};
 
-handle_info(_Info, StateName, StateData) ->
-    {noreply, StateName, StateData}.
+handle_info(Info, StateName, StateData) ->
+    gen_server:call(logger,
+            {error, {advlog, "commander unexpected message ~p ~p ~p ~n",
+                                                [Info, StateName, StateData]}}),
+    {stop, normal, StateData}.
 
 %%-------------------------------------------------------------------------
 %% Func: terminate/3
