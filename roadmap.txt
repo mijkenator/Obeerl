@@ -1,0 +1,4 @@
+Web_searcher (supervizor)
+    Supervisor will start a different number of work servers
+    And One jobmaker server
+    Worker servers will get jobs from jobmaker and will save job results into jobmaker
