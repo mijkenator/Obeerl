@@ -15,14 +15,16 @@ start_link(WorkerName) ->
     io:format("wsworker started ~p ~n", [WorkerName]),
     gen_server:start_link({local, WorkerName}, ?MODULE, #worker_state{workername = WorkerName}, []).
     
-init(_Args) ->
-  %gen_server:cast(self(), {accepted, self()}),
-  {ok, 'worker inited'}.
+init(Args) ->
+  io:format("ws work init callback launched ~p ~n", [Args]),
+  gen_server:cast(ws_job, {getjob, self()}),
+  {ok, Args}.
   
 handle_cast({accepted, _Pid}, State=#worker_state{}) ->
     io:format("cast !!!! ~n"),
     {noreply, State};
-handle_cast(_Msg, State) ->
+handle_cast(Msg, State) ->
+    io:format("cast unknown !!!! ~p ~p ~n", [Msg, State]),
     {noreply, State}. 
   
 % These are just here to suppress warnings.

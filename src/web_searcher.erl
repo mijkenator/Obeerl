@@ -5,36 +5,69 @@
 %%%-------------------------------------------------------------------
 -module(web_searcher).
 
--behaviour(supervisor).
+-behaviour(application).
 
--export([start_link/0]).
--export([init/1, start_worker/0, start_worker/1]).
+-export([start/2, stop/1]).
+-export([init/1, start_client/1]).
 
 
-start_link() ->
-    supervisor:start_link(?MODULE, []).
+start_client(Opts) ->
+    supervisor:start_child(ws_com_sup, [Opts]).
+
+
+%%----------------------------------------------------------------------
+%% Application behaviour callbacks
+%%----------------------------------------------------------------------
+start(_Type, _Args) ->
+    supervisor:start_link({local, ?MODULE}, ?MODULE, [1000, ws_worker]).
+
+stop(_S) ->
+    ok.
+
+
 
     
-
-init(_Args) ->
+%%----------------------------------------------------------------------
+%% Supervisor behaviour callbacks
+%%----------------------------------------------------------------------
+init([MaxWorkers, Module]) ->
     io:format("supervisor init ~p ~n", [self()]),
    {ok, {
             {one_for_one, 1, 60},
             [
-             {wsw1, {ws_worker, start_link, ['Worker1']},
-               permanent, 5000, worker, []},
-             {wsw2, {ws_worker, start_link, ['Worker2']},
-               permanent, 5000, worker, []}
+              { ws_com_sup,
+                {supervisor,start_link,[{local, ws_com_sup}, ?MODULE, [Module]]},
+                permanent,                               % Restart  = permanent | transient | temporary
+                infinity,                                % Shutdown = brutal_kill | int() >= 0 | infinity
+                supervisor,                              % Type     = worker | supervisor
+                []                                       % Modules  = [Module] | dynamic
+              },
+              { ws_job_server,
+                {ws_job,start_link,[MaxWorkers]},
+                permanent,                               
+                2000,                                
+                worker,                              
+                [ws_job]                                      
+              }
+            ]
+        }
+    };
+init([Module]) ->
+    {ok,
+        {_SupFlags = {simple_one_for_one, 1, 60},
+            [
+              % worker
+              {   undefined,                               % Id       = internal id
+                  {Module,start_link,[]},                  % StartFun = {M, F, A}
+                  temporary,                               % Restart  = permanent | transient | temporary
+                  2000,                                    % Shutdown = brutal_kill | int() >= 0 | infinity
+                  worker,                                  % Type     = worker | supervisor
+                  []                                       % Modules  = [Module] | dynamic
+              }
             ]
         }
     }.
     
-start_worker() -> start_worker(self()).
-start_worker(Pid) ->
-    MyPid = self(),
-    io:format("supervisor start worker ~p ~n", [MyPid]),
-    supervisor:start_child(Pid,
-        {wsw0, {ws_worker, start_link, ['Worker0']},
-            permanent, 5000, worker, []}).
+    
 
 
