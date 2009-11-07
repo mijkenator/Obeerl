@@ -26,6 +26,7 @@ init(Args) ->
   % put into base first url for job
   % start first worker -> web_searcher:start_client(ws_worker1).
   %
+  inets:start(),
   do_this_once(),
   mnesia:start(),
   mnesia:wait_for_tables([jobrec], 20000),
@@ -38,7 +39,7 @@ handle_cast({getjob, Pid}, State=#job_state{}) ->
     Ans=mnesia:transaction(fun() -> mnesia:select(jobrec, [{#jobrec{state=new, url='$1'}, [], ['$1']}], 1, read) end ),
     io:format("ANS !!!! ~p ~n", [Ans]),
     case Ans of
-        {atomic, {[Url], _}} -> gen_server:cast(Pid, Url);
+        {atomic, {[Url], _}} -> gen_server:cast(Pid, {job, Url});
         _ -> io:format("bad ans format ~n")
     end,
     {noreply, State};
@@ -61,10 +62,10 @@ do_this_once() ->
     mnesia:stop().
 
 set_first_job() ->
-    Row = #jobrec{url='http://mail.ru', state=new},
+    Row = #jobrec{url="http://perl.org", state=new},
     F = fun() -> mnesia:write(Row) end,
     mnesia:transaction(F),
-    Row1 = #jobrec{url='http://yandex.ru', state=new},
+    Row1 = #jobrec{url="http://perl.org", state=new},
     F1 = fun() -> mnesia:write(Row1) end,
     mnesia:transaction(F1).
     

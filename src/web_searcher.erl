@@ -48,6 +48,13 @@ init([MaxWorkers, Module]) ->
                 2000,                                
                 worker,                              
                 [ws_job]                                      
+              },
+              { ws_worker0,
+                {ws_worker, start_link, [ ws_worker0 ]},
+                temporary,
+                2000,
+                worker,
+                []
               }
             ]
         }
