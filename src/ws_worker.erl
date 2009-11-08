@@ -3,7 +3,7 @@
 
 -export([start_link/1]).
 -export([init/1, code_change/3, handle_call/3, handle_cast/2, handle_info/2, terminate/2]).
--export([do_job/1, get_urls/1, finding/3]).
+-export([do_job/1, get_urls/2, finding/3, trim_slash/1]).
 
 
 -behaviour(gen_server).
@@ -45,13 +45,27 @@ do_job(Url) ->
             io:format("job ~p result status -> ~p  ~n", [Url, Status]),
             io:format("job ~p headers -> ~p bytes ~n",  [Url, Headers]),
             io:format("job ~p body length -> ~p bytes ~n", [Url, string:len(Body)]),
-            {ok, get_urls(mochiweb_html:parse(Body))};
+            {ok, get_urls(mochiweb_html:parse(Body), Url)};
         {error, Reason} ->
             io:format("job ~p failed -> ~p ~n", [Url, Reason]),
             {error, Reason}
     end.
 
-get_urls(Tree)->finding(<<"a">>,<<"href">>, Tree).
+get_urls(Tree, MainUrl) ->
+    Complement = fun(Url) ->
+        case regexp:matches(Url, "^(http|https:\/\/)") of
+            {match, []} -> string:join([trim_slash(MainUrl), trim_slash(Url)], "/");
+            _ -> Url
+        end
+    end,
+    GrepHttp = fun(Url) ->
+        case regexp:matches(Url, "^(http|https:\/\/)") of
+            {match, _A}  -> true;
+            {match, []} -> false;
+            _           -> false
+        end
+    end,
+    lists:filter(GrepHttp ,[Complement(M) || M <- finding(<<"a">>,<<"href">>, Tree)]).
     
 finding(Pattern, Attribute, Tree) when is_binary(Attribute)->  
  GetAttr = fun(Found) ->  
@@ -75,4 +89,9 @@ finding(Pattern, [Next | Siblings], Collected) ->
     end;  
   _ ->  
     finding(Pattern, Siblings, Collected)  
-  end. 
+  end.
+  
+trim_slash(Str) ->
+    {_,LS,_} = regexp:sub(Str, "\/*$", ""),
+    {_,RS,_} = regexp:sub(LS, "^\/*", ""),
+    RS.
