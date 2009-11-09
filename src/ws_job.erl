@@ -106,16 +106,12 @@ check_not_exists(Url) ->
     
 worker_checkout(MaxWorkers) ->
     WW = supervisor:which_children(ws_com_sup),
-    case WW of
-        [_|_] ->
-            io:format("start additional clients !!!!! ~n"),
-            Workers = [string:to_integer(string:substr(Id, 9)) || {Id, _, _, _} <- WW],
-            ChildListLength = erlang:length(Workers),
-            NewJobCount = erlang:length(do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == new]))),
-            lists:map(fun(Elem) -> web_searcer:start_client(string:concat('wsworker',Elem)) end,
-                additional_worker_list(MaxWorkers, NewJobCount, ChildListLength, lists:max(Workers)));
-        [] -> io:format("NOT start additional clients !!!!! ~n"),false
-    end.
+    io:format("start additional clients !!!!! ~n"),
+    Workers = [string:to_integer(string:substr(Id, 9)) || {Id, _, _, _} <- WW],
+    ChildListLength = erlang:length(Workers),
+    NewJobCount = erlang:length(do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == new]))),
+    lists:map(fun(Elem) -> web_searcher:start_client(string:concat("wsworker",integer_to_list(Elem))) end,
+        additional_worker_list(MaxWorkers, NewJobCount, ChildListLength, max_number(Workers))).
 
 additional_worker_list(MaxWorkers, JobCount, WorkerCount, LastWorkerNumber)
     when MaxWorkers > JobCount, MaxWorkers > WorkerCount ->
@@ -125,4 +121,8 @@ additional_worker_list(MaxWorkers, JobCount, WorkerCount, LastWorkerNumber)
         lists:seq(LastWorkerNumber + 1, LastWorkerNumber + 1 + (JobCount - WorkerCount));
 additional_worker_list(_MaxWorkers, _JobCount, _WorkerCount, _LastWorkerNumber)  -> [].
 
-    
+max_number(List) ->
+    case List of
+        [_|_] -> lists:max(List);
+        []    -> 0
+    end.
