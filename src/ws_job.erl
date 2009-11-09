@@ -35,13 +35,42 @@ init(Args) ->
   
 handle_cast({getjob, Pid}, State=#job_state{}) ->
     io:format("WS get job cast !!!! ~n"),
-    %Ans=do(qlc:q([X#jobrec.url || X <- mnesia:table(jobrec), X#jobrec.state =:= new ])),
-    Ans=mnesia:transaction(fun() -> mnesia:select(jobrec, [{#jobrec{state=new, url='$1'}, [], ['$1']}], 1, read) end ),
+    Ans = mnesia:transaction(fun() -> mnesia:select(jobrec, [{#jobrec{state=new, url='$1'}, [], ['$1']}], 1, read) end ),
     io:format("ANS !!!! ~p ~n", [Ans]),
     case Ans of
-        {atomic, {[Url], _}} -> gen_server:cast(Pid, {job, Url});
-        _ -> io:format("bad ans format ~n")
+        {atomic, {[Url], _}} ->
+            mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=Url, state=processing}) end),
+            gen_server:cast(Pid, {job, Url});
+        _                    ->
+            io:format("bad ans format ~n")
     end,
+    {noreply, State};
+handle_cast({jobdone, _Pid, Url}, State=#job_state{}) ->
+    io:format("WS job ~p done . ~n", [Url]),
+    Ret = mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=Url, state=done}) end),
+    case Ret of
+        {atomic, Result} -> io:format("WS job ~p done TRRES : ~p . ~n", [Url, Result]);
+        M ->    io:format("WS job ~p done TRRES Fail: ~p . ~n", [Url, M])
+    end,
+    {noreply, State};
+handle_cast({jobfail, _Pid, Url}, State=#job_state{}) ->
+    io:format("WS job ~p fail . ~n", [Url]),
+    mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=Url, state=fail}) end),
+    {noreply, State};
+handle_cast({savejob, _Pid, Results}, State=#job_state{}) ->
+    io:format("WS save job results ~n"),
+    lists:foreach(fun(Url) ->
+            case check_not_exists(Url) of
+                true ->
+                    Row = #jobrec{url=Url, state=new},
+                    F = fun() -> mnesia:write(Row) end,
+                    mnesia:transaction(F);
+                _    -> false
+            end
+            end, Results),
+    %io:format("NOW IN Mnesia new : ~p ~n", [do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == new]))]),
+    io:format("NOW IN Mnesia done : ~p ~n", [do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == done]))]),
+    io:format("NOW IN Mnesia fail : ~p ~n", [do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == fail]))]),
     {noreply, State};
 handle_cast(Msg, State) ->
     io:format("WS job unknown cast !!!! ~p ~p ~n", [Msg, State]),
@@ -58,19 +87,22 @@ code_change(_OldVersion, State, _Extra) -> {ok, State}.
 do_this_once() ->
     mnesia:create_schema([node()]),
     mnesia:start(),
-    mnesia:create_table(jobrec,   [{attributes, record_info(fields, jobrec)}]),
+    mnesia:create_table(jobrec, [{attributes, record_info(fields, jobrec)}, {index, [url]}, {type, set}]),
     mnesia:stop().
 
 set_first_job() ->
     Row = #jobrec{url="http://perl.org", state=new},
     F = fun() -> mnesia:write(Row) end,
-    mnesia:transaction(F),
-    Row1 = #jobrec{url="http://perl.org", state=new},
-    F1 = fun() -> mnesia:write(Row1) end,
-    mnesia:transaction(F1).
-    
+    mnesia:transaction(F).
     
 do(Q) ->
     F = fun() -> qlc:e(Q) end,
     {atomic, Val} = mnesia:transaction(F),
     Val.
+
+check_not_exists(Url) ->
+    Ans = mnesia:transaction(fun() -> mnesia:select(jobrec, [{#jobrec{state='$1', url=Url}, [], ['$1']}], 1, read) end ),
+    case Ans of
+        {atomic, {_, _}} -> false;
+        _                    -> true
+    end.

@@ -24,8 +24,17 @@ init(Args) ->
   
 handle_cast({job, Url}, State) ->
     io:format("cast  !!!! ~p ~p ~n", [Url, State]),
-    Ret = do_job(Url),
-    io:format("ret of job: ~p~n", [Ret]),
+    case do_job(Url) of
+        {ok, Ret}       ->
+            %io:format("ret of job: ~p~n", [Ret]),
+            gen_server:cast(ws_job, {jobdone, self(), Url}),
+            gen_server:cast(ws_job, {savejob, self(), Ret}),
+            gen_server:cast(ws_job, {getjob, self()});
+        {error, Reason} ->
+            gen_server:cast(ws_job, {jobfail, self(), Url}),
+            io:format("job error: ~p~n",  [Reason]),
+            gen_server:cast(ws_job, {getjob, self()})
+    end,
     {noreply, State};
 handle_cast(Msg, State) ->
     io:format("cast unknown !!!! ~p ~p ~n", [Msg, State]),
@@ -45,7 +54,11 @@ do_job(Url) ->
             io:format("job ~p result status -> ~p  ~n", [Url, Status]),
             io:format("job ~p headers -> ~p bytes ~n",  [Url, Headers]),
             io:format("job ~p body length -> ~p bytes ~n", [Url, string:len(Body)]),
-            {ok, get_urls(mochiweb_html:parse(Body), Url)};
+            case get_urls(mochiweb_html:parse(Body), Url) of
+                {ok, M} -> {ok, M};
+                {error, M} -> {error, M}
+            end;
+            %{ok, get_urls(mochiweb_html:parse(Body), Url)};
         {error, Reason} ->
             io:format("job ~p failed -> ~p ~n", [Url, Reason]),
             {error, Reason}
@@ -60,12 +73,16 @@ get_urls(Tree, MainUrl) ->
     end,
     GrepHttp = fun(Url) ->
         case regexp:matches(Url, "^(http|https:\/\/)") of
-            {match, _A}  -> true;
             {match, []} -> false;
+            {match, _A}  -> true;
             _           -> false
         end
     end,
-    lists:filter(GrepHttp ,[Complement(M) || M <- finding(<<"a">>,<<"href">>, Tree)]).
+    try lists:filter(GrepHttp ,[Complement(M) || M <- finding(<<"a">>,<<"href">>, Tree)]) of
+        M -> {ok, M}
+    catch
+        _ : Error -> {error, Error}
+    end.
     
 finding(Pattern, Attribute, Tree) when is_binary(Attribute)->  
  GetAttr = fun(Found) ->  
