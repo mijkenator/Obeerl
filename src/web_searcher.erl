@@ -19,7 +19,7 @@ start_client(Opts) ->
 %% Application behaviour callbacks
 %%----------------------------------------------------------------------
 start(_Type, _Args) ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, [1000, ws_worker]).
+    supervisor:start_link({local, ?MODULE}, ?MODULE, [10, ws_worker]).
 
 stop(_S) ->
     ok.
@@ -49,8 +49,8 @@ init([MaxWorkers, Module]) ->
                 worker,                              
                 [ws_job]                                      
               },
-              { ws_worker0,
-                {ws_worker, start_link, [ ws_worker0 ]},
+              { wsworker0,
+                {ws_worker, start_link, [ wsworker0 ]},
                 temporary,
                 2000,
                 worker,

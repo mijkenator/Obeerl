@@ -21,11 +21,7 @@ start_link(MaxWorkers) ->
     
 init(Args) ->
   io:format("ws job init callback launched ~p ~n", [Args]),
-  %
-  % make mnesia database
-  % put into base first url for job
-  % start first worker -> web_searcher:start_client(ws_worker1).
-  %
+
   inets:start(),
   do_this_once(),
   mnesia:start(),
@@ -57,7 +53,7 @@ handle_cast({jobfail, _Pid, Url}, State=#job_state{}) ->
     io:format("WS job ~p fail . ~n", [Url]),
     mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=Url, state=fail}) end),
     {noreply, State};
-handle_cast({savejob, _Pid, Results}, State=#job_state{}) ->
+handle_cast({savejob, _Pid, Results}, State=#job_state{maxworkers=MaxWorkers}) ->
     io:format("WS save job results ~n"),
     lists:foreach(fun(Url) ->
             case check_not_exists(Url) of
@@ -71,6 +67,7 @@ handle_cast({savejob, _Pid, Results}, State=#job_state{}) ->
     %io:format("NOW IN Mnesia new : ~p ~n", [do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == new]))]),
     io:format("NOW IN Mnesia done : ~p ~n", [do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == done]))]),
     io:format("NOW IN Mnesia fail : ~p ~n", [do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == fail]))]),
+    worker_checkout(MaxWorkers),
     {noreply, State};
 handle_cast(Msg, State) ->
     io:format("WS job unknown cast !!!! ~p ~p ~n", [Msg, State]),
@@ -106,3 +103,26 @@ check_not_exists(Url) ->
         {atomic, {_, _}} -> false;
         _                    -> true
     end.
+    
+worker_checkout(MaxWorkers) ->
+    WW = supervisor:which_children(ws_com_sup),
+    case WW of
+        [_|_] ->
+            io:format("start additional clients !!!!! ~n"),
+            Workers = [string:to_integer(string:substr(Id, 9)) || {Id, _, _, _} <- WW],
+            ChildListLength = erlang:length(Workers),
+            NewJobCount = erlang:length(do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == new]))),
+            lists:map(fun(Elem) -> web_searcer:start_client(string:concat('wsworker',Elem)) end,
+                additional_worker_list(MaxWorkers, NewJobCount, ChildListLength, lists:max(Workers)));
+        [] -> io:format("NOT start additional clients !!!!! ~n"),false
+    end.
+
+additional_worker_list(MaxWorkers, JobCount, WorkerCount, LastWorkerNumber)
+    when MaxWorkers > JobCount, MaxWorkers > WorkerCount ->
+        lists:seq(LastWorkerNumber + 1, LastWorkerNumber + 1 + (MaxWorkers - WorkerCount));
+additional_worker_list(MaxWorkers, JobCount, WorkerCount, LastWorkerNumber)
+    when MaxWorkers > WorkerCount ->
+        lists:seq(LastWorkerNumber + 1, LastWorkerNumber + 1 + (JobCount - WorkerCount));
+additional_worker_list(_MaxWorkers, _JobCount, _WorkerCount, _LastWorkerNumber)  -> [].
+
+    
