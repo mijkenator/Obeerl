@@ -4,7 +4,7 @@
 -export([start_link/1]).
 -export([init/1, code_change/3, handle_call/3, handle_cast/2, handle_info/2, terminate/2]).
 
--export([do_this_once/0, do/1]).
+-export([do_this_once/0, do/1, check_not_exists/1]).
 
 -behaviour(gen_server).
 
@@ -23,7 +23,7 @@ init(Args) ->
   io:format("ws job init callback launched ~p ~n", [Args]),
 
   inets:start(),
-  do_this_once(),
+%  do_this_once(),
   mnesia:start(),
   mnesia:wait_for_tables([jobrec], 20000),
   set_first_job(),
@@ -32,7 +32,7 @@ init(Args) ->
 handle_cast({getjob, Pid}, State=#job_state{}) ->
     io:format("WS get job cast !!!! ~n"),
     Ans = mnesia:transaction(fun() -> mnesia:select(jobrec, [{#jobrec{state=new, url='$1'}, [], ['$1']}], 1, read) end ),
-    %io:format("ANS !!!! ~p ~n", [Ans]),
+    io:format("ANS !!!! ~p ~n", [Ans]),
     case Ans of
         {atomic, {[Url], _}} ->
             mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=Url, state=processing}) end),
@@ -55,13 +55,14 @@ handle_cast({jobfail, _Pid, Url}, State=#job_state{}) ->
     mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=Url, state=fail}) end),
     {noreply, State};
 handle_cast({savejob, _Pid, Results}, State=#job_state{maxworkers=MaxWorkers}) ->
-    %io:format("WS save job results ~n"),
+    io:format("WS save job results ~p ~n",[Results]),
     lists:foreach(fun(Url) ->
             case check_not_exists(Url) of
                 true ->
                     Row = #jobrec{url=Url, state=new},
                     F = fun() -> mnesia:write(Row) end,
                     mnesia:transaction(F);
+                    %io:format("WS save job results ret ~p ~n", [Trret]);
                 _    -> false
             end
             end, Results),
@@ -85,8 +86,9 @@ code_change(_OldVersion, State, _Extra) -> {ok, State}.
 do_this_once() ->
     mnesia:create_schema([node()]),
     mnesia:start(),
-    mnesia:create_table(jobrec, [{attributes, record_info(fields, jobrec)},
-        {index, [url]}, {type, set}, {disc_only_copies, [node()]}, {ram_copies, []}]),
+    Ret = mnesia:create_table(jobrec, [{attributes, record_info(fields, jobrec)},
+        {type, set}, {disc_only_copies, [node()]}, {ram_copies, []}]),
+    io:format("DTHO!!!! ~p ~n", [Ret]),
 %    mnesia:change_table_copy_type(jobrec, node(), disc_only_copies),
     mnesia:stop().
 
@@ -103,8 +105,9 @@ do(Q) ->
 check_not_exists(Url) ->
     Ans = mnesia:transaction(fun() -> mnesia:select(jobrec, [{#jobrec{state='$1', url=Url}, [], ['$1']}], 1, read) end ),
     case Ans of
+        {atomic, {[], _}}-> true;
         {atomic, {_, _}} -> false;
-        _                    -> true
+        _                -> true
     end.
 
 
