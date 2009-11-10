@@ -15,7 +15,9 @@
 
 start_link(WorkerName) ->
     io:format("wsworker started ~p ~n", [WorkerName]),
-    gen_server:start_link({local, WorkerName}, ?MODULE, #worker_state{workername = WorkerName}, []).
+    Result = gen_server:start_link({local, WorkerName}, ?MODULE, #worker_state{workername = WorkerName}, []),
+    io:format("wsworker started Result ~p ~n", [Result]),
+    Result.
     
 init(Args) ->
   io:format("ws work init callback launched ~p ~n", [Args]),
@@ -23,7 +25,7 @@ init(Args) ->
   {ok, Args}.
   
 handle_cast({job, Url}, State) ->
-    io:format("cast  !!!! ~p ~p ~n", [Url, State]),
+    %io:format("cast  !!!! ~p ~p ~n", [Url, State]),
     case do_job(Url) of
         {ok, Ret}       ->
             %io:format("ret of job: ~p~n", [Ret]),
@@ -36,6 +38,7 @@ handle_cast({job, Url}, State) ->
             gen_server:cast(ws_job, {getjob, self()})
     end,
     {noreply, State};
+    %{stop, "work is done", State};
 handle_cast(Msg, State) ->
     io:format("cast unknown !!!! ~p ~p ~n", [Msg, State]),
     {noreply, State}. 
@@ -52,7 +55,7 @@ do_job(Url) ->
     case http:request(get, {Url, []}, [], []) of
         {ok, {Status, Headers, Body}} ->
             io:format("job ~p result status -> ~p  ~n", [Url, Status]),
-            io:format("job ~p headers -> ~p bytes ~n",  [Url, Headers]),
+            %o:format("job ~p headers -> ~p bytes ~n",  [Url, Headers]),
             io:format("job ~p body length -> ~p bytes ~n", [Url, string:len(Body)]),
             case get_urls(mochiweb_html:parse(Body), Url) of
                 {ok, M} -> {ok, M};

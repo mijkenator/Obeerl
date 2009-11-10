@@ -8,12 +8,14 @@
 -behaviour(application).
 
 -export([start/2, stop/1]).
--export([init/1, start_client/1]).
+-export([init/1, start_client/1, start_client2/1]).
 
 
 start_client(Opts) ->
     supervisor:start_child(ws_com_sup, [Opts]).
 
+start_client2(Opts) ->
+    supervisor:start_child(ws_com_sup, [Opts]).
 
 %%----------------------------------------------------------------------
 %% Application behaviour callbacks
