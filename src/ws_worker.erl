@@ -3,7 +3,7 @@
 
 -export([start_link/1]).
 -export([init/1, code_change/3, handle_call/3, handle_cast/2, handle_info/2, terminate/2]).
--export([do_job/1, get_urls/2, finding/3, trim_slash/1]).
+-export([do_job/2, get_urls/2, finding/3, trim_slash/1, get_urls2/2]).
 
 
 -behaviour(gen_server).
@@ -26,7 +26,7 @@ init(Args) ->
   
 handle_cast({job, Url}, State) ->
     %io:format("cast  !!!! ~p ~p ~n", [Url, State]),
-    case do_job(Url) of
+    case do_job(Url, State) of
         {ok, Ret}       ->
             %io:format("ret of job: ~p~n", [Ret]),
             gen_server:cast(ws_job, {jobdone, self(), Url}),
@@ -50,23 +50,53 @@ terminate(_Reason, _State) -> ok.
 code_change(_OldVersion, State, _Extra) -> {ok, State}.
 
 
-do_job(Url) ->
-    io:format("Do job -> ~p ~n", [Url]),
+do_job(Url, State) ->
+    io:format("Do job -> ~p ~n", [State]),
     case http:request(get, {Url, []}, [], []) of
-        {ok, {Status, Headers, Body}} ->
+        {ok, {Status, _Headers, Body}} ->
             io:format("job ~p result status -> ~p  ~n", [Url, Status]),
             %o:format("job ~p headers -> ~p bytes ~n",  [Url, Headers]),
             io:format("job ~p body length -> ~p bytes ~n", [Url, string:len(Body)]),
-            case get_urls(mochiweb_html:parse(Body), Url) of
+            case get_urls2(Body, Url) of
+            %case get_urls(mochiweb_html:parse(Body), Url) of
                 {ok, M} -> {ok, M};
                 {error, M} -> {error, M}
             end;
-            %{ok, get_urls(mochiweb_html:parse(Body), Url)};
         {error, Reason} ->
             io:format("job ~p failed -> ~p ~n", [Url, Reason]),
             {error, Reason}
     end.
 
+get_urls2(Html, MainUrl) ->
+    Complement = fun(Url) ->
+        case regexp:matches(Url, "^(http|https:\/\/)") of
+            {match, []} -> string:join([trim_slash(MainUrl), trim_slash(Url)], "/");
+            _ -> Url
+        end
+    end,
+    GrepHttp = fun(Url) ->
+        case regexp:matches(Url, "^(http|https:\/\/)") of
+            {match, []} -> false;
+            {match, _A} -> case regexp:matches(Url, "\.(pdf|mp3|doc|tar|rar|zip|tgz|tar.gz)$") of
+                                {match, []} -> true;
+                                {match, _A} -> false;
+                                _           -> true
+                           end;
+            _           -> false
+        end
+    end,
+    Reg = "<a\\s+\\.*?href\\s*=\\s*['\"]*([^'\"]+)['\"]*\\.*?>",
+    U = case regexp:matches(Html, Reg) of
+        {match, A} when is_list(A) -> [ string:substr(Html, Start, Length) || {Start, Length} <- A];
+        _   -> []
+    end,
+    Urls = [ string:substr(M, 7, length(M)-8 ) || M <- U],
+    try lists:filter(GrepHttp ,[Complement(M) || M <- Urls]) of
+        M -> {ok, M}
+    catch
+        _ : Error -> {error, Error}
+    end.
+    
 get_urls(Tree, MainUrl) ->
     Complement = fun(Url) ->
         case regexp:matches(Url, "^(http|https:\/\/)") of
@@ -77,7 +107,11 @@ get_urls(Tree, MainUrl) ->
     GrepHttp = fun(Url) ->
         case regexp:matches(Url, "^(http|https:\/\/)") of
             {match, []} -> false;
-            {match, _A}  -> true;
+            {match, _A} -> case regexp:matches(Url, "\.(pdf|mp3|doc|tar|rar|zip|tgz|tar.gz)$") of
+                                {match, []} -> true;
+                                {match, _A} -> false;
+                                _           -> true
+                           end;
             _           -> false
         end
     end,

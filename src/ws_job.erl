@@ -30,15 +30,16 @@ init(Args) ->
   {ok, Args}.
   
 handle_cast({getjob, Pid}, State=#job_state{}) ->
-    io:format("WS get job cast !!!! ~n"),
+    %io:format("WS get job cast !!!! ~n"),
     Ans = mnesia:transaction(fun() -> mnesia:select(jobrec, [{#jobrec{state=new, url='$1'}, [], ['$1']}], 1, read) end ),
-    io:format("ANS !!!! ~p ~n", [Ans]),
+    %io:format("ANS !!!! ~p ~n", [Ans]),
     case Ans of
-        {atomic, {[Url], _}} ->
+        {atomic, {[Url|_], _}} ->
+            %io:format("ANS !!!! ~p ~n", [Url]),
             mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=Url, state=processing}) end),
             gen_server:cast(Pid, {job, Url});
-        _                    ->
-            io:format("bad ans format ~n")
+        _                      ->
+            io:format("bad ans format ~p ~n", [Ans])
     end,
     {noreply, State};
 handle_cast({jobdone, _Pid, Url}, State=#job_state{}) ->
@@ -93,6 +94,7 @@ do_this_once() ->
     mnesia:stop().
 
 set_first_job() ->
+    mnesia:clear_table(jobrec),
     Row = #jobrec{url="http://perl.org", state=new},
     F = fun() -> mnesia:write(Row) end,
     mnesia:transaction(F).
@@ -116,6 +118,7 @@ worker_checkout(MaxWorkers) ->
 %    WW = supervisor:which_children(ws_com_sup),
 %    Workers = [string:to_integer(string:substr(Id, 9)) || {Id, _, _, _} <- WW],
     ChildListLength = erlang:length(supervisor:which_children(ws_com_sup)),
+    io:format("Current worker count: ~p ~n", [ChildListLength]),
     NewJobCount = erlang:length(do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == new]))),
     lists:map(fun(Elem) -> web_searcher:start_client(list_to_atom(string:concat("wsworker",integer_to_list(Elem)))) end,
         additional_worker_list(MaxWorkers, NewJobCount, ChildListLength)).
@@ -131,9 +134,3 @@ additional_worker_list(MaxWorkers, JobCount, WorkerCount)
         lists:map(fun(Elem)-> random:uniform(Elem+100000000000) end,
             lists:seq(1, 1 + (JobCount - WorkerCount)));
 additional_worker_list(_MaxWorkers, _JobCount, _WorkerCount)  -> [].
-
-max_number(List) ->
-    case List of
-        [_|_] -> lists:max(List);
-        []    -> 0
-    end.
