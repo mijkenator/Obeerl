@@ -13,7 +13,8 @@
         workbase}).
 
 -include_lib("stdlib/include/qlc.hrl").
--record(jobrec, {url, state, time}).
+-include_lib("jobrec.hrl").
+%-record(jobrec, {url, state, time}).
 
 start_link(MaxWorkers) ->
     io:format("ws jobber started ~p ~n", [MaxWorkers]),
@@ -25,6 +26,7 @@ init(Args) ->
   inets:start(),
 %  do_this_once(),
   mnesia:start(),
+  ssl:start(),
   mnesia:wait_for_tables([jobrec], 20000),
   set_first_job(),
   {ok, Args}.
@@ -55,8 +57,12 @@ handle_cast({jobfail, _Pid, Url}, State=#job_state{}) ->
     io:format("WS job ~p fail . ~n", [Url]),
     mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=Url, state=fail}) end),
     {noreply, State};
-handle_cast({savejob, _Pid, Results}, State=#job_state{maxworkers=MaxWorkers}) ->
-    io:format("WS save job results ~p ~n",[Results]),
+handle_cast({ping, Pid, Url}, State=#job_state{}) ->
+    gen_server:cast(Pid, {job, Url}),
+    %worker_checkout(MaxWorkers),
+    {noreply, State};
+handle_cast({savejob, _Pid, Results}, State=#job_state{}) ->
+    %io:format("WS save job results ~p ~n",[Results]),
     lists:foreach(fun(Url) ->
             case check_not_exists(Url) of
                 true ->
@@ -70,7 +76,7 @@ handle_cast({savejob, _Pid, Results}, State=#job_state{maxworkers=MaxWorkers}) -
     io:format("NOW IN Mnesia new : ~p ~n", [length(do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == new])))]),
     io:format("NOW IN Mnesia done : ~p ~n", [length(do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == done])))]),
     %io:format("NOW IN Mnesia fail : ~p ~n", [do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == fail]))]),
-    worker_checkout(MaxWorkers),
+    %worker_checkout(MaxWorkers),
     {noreply, State};
 handle_cast(Msg, State) ->
     io:format("WS job unknown cast !!!! ~p ~p ~n", [Msg, State]),
@@ -129,7 +135,7 @@ additional_worker_list(MaxWorkers, JobCount, WorkerCount)
         lists:map(fun(Elem)-> random:uniform(Elem+100000000000) end,
             lists:seq(1, 1 + (MaxWorkers - WorkerCount)));
 additional_worker_list(MaxWorkers, JobCount, WorkerCount)
-    when MaxWorkers > WorkerCount ->
+    when MaxWorkers > WorkerCount, JobCount > WorkerCount ->
         io:format("start additional clients ~p ~p ~p ~n", [MaxWorkers,WorkerCount,JobCount]),
         lists:map(fun(Elem)-> random:uniform(Elem+100000000000) end,
             lists:seq(1, 1 + (JobCount - WorkerCount)));
