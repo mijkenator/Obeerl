@@ -5,7 +5,7 @@
 -export([init/1, code_change/3, handle_call/3, handle_cast/2, handle_info/2, terminate/2]).
 -export([do_job/2, trim_slash/1, get_urls2/2]).
 
--export([get_job/0, save_job/1, job_done/1]).
+-export([get_job/0, save_job/1]).
 
 -include_lib("stdlib/include/qlc.hrl").
 -include_lib("jobrec.hrl").
@@ -25,25 +25,34 @@ start_link(WorkerName) ->
     
 init(Args) ->
   io:format("ws work init callback launched ~p ~n", [Args]),
-  gen_server:cast(ws_job, {getjob, self()}),
+  NewUrl = get_job(),
+  gen_server:cast(ws_job, {ping, self(), NewUrl}),
   {ok, Args}.
   
-handle_cast({job, Url}, State) ->
-    %io:format("cast  !!!! ~p ~p ~n", [Url, State]),
+handle_cast({job, U}, State=#worker_state{workername = WorkerName}) ->
+    Url = binary_to_list(U),
+    { memory, M } = erlang:process_info (self (), memory),
+    io:format("MEMORY0:~p ~p~n", [WorkerName, M1]),
     case do_job(Url, State) of
         {ok, Ret}       ->
             %io:format("ret of job: ~p~n", [Ret]),
-            %gen_server:cast(ws_job, {jobdone, self(), Url}),
-            job_done(Url),
-            %gen_server:cast(ws_job, {savejob, self(), Ret}),
+            { memory, M1 } = erlang:process_info (self (), memory),
+            io:format("MEMORY1:~p ~p~n", [WorkerName, M1]),
+            mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=list_to_binary(Url), state=done}) end),
+            { memory, M2 } = erlang:process_info (self (), memory),
+            io:format("MEMORY2:~p ~p~n", [WorkerName, M1]),
             save_job(Ret),
-            %gen_server:cast(ws_job, {getjob, self()});
+            { memory, M3 } = erlang:process_info (self (), memory),
+            io:format("MEMORY3:~p ~p~n", [WorkerName, M1]),
             NewUrl = get_job(),
+            { memory, M4 } = erlang:process_info (self (), memory),
+            io:format("MEMORY4:~p ~p~n", [WorkerName, M1]),
             gen_server:cast(ws_job, {ping, self(), NewUrl});
         {error, Reason} ->
-            gen_server:cast(ws_job, {jobfail, self(), Url}),
+            mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=list_to_binary(Url), state=fail}) end),
             io:format("job error: ~p~n",  [Reason]),
-            gen_server:cast(ws_job, {getjob, self()})
+            NewUrl = get_job(),
+            gen_server:cast(ws_job, {ping, self(), NewUrl})
     end,
     {noreply, State};
     %{stop, "work is done", State};
@@ -60,7 +69,7 @@ code_change(_OldVersion, State, _Extra) -> {ok, State}.
 
 do_job(Url, State) ->
     io:format("Do job -> ~p ~p ~n", [State, Url]),
-    case http:request(get, {Url, []}, [{timeout, 10000}, {autoredirect, true}], []) of
+    case http:request(get, {Url, []}, [{timeout, 20000}, {autoredirect, true}], []) of
         {ok, {Status, _Headers, Body}} ->
             io:format("job ~p result status -> ~p  ~n", [Url, Status]),
             %o:format("job ~p headers -> ~p bytes ~n",  [Url, Headers]),
@@ -99,67 +108,15 @@ get_urls2(Html, MainUrl) ->
         _   -> []
     end,
     try lists:filter(GrepHttp ,[Complement(M) || M <- U]) of
-        M -> {ok, M}
+        M -> {ok, [list_to_binary(X) || X <- M]}
     catch
         _ : Error -> {error, Error}
     end.
-    
-%get_urls(Tree, MainUrl) ->
-%    Complement = fun(Url) ->
-%        case regexp:matches(Url, "^(http|https:\/\/)") of
-%            {match, []} -> string:join([trim_slash(MainUrl), trim_slash(Url)], "/");
-%            _ -> Url
-%        end
-%    end,
-%    GrepHttp = fun(Url) ->
-%        case regexp:matches(Url, "^(http|https:\/\/)") of
-%            {match, []} -> false;
-%            {match, _A} -> case regexp:matches(Url, "\.(pdf|mp3|doc|tar|rar|zip|tgz|tar.gz)$") of
-%                                {match, []} -> true;
-%                                {match, _A} -> false;
-%                                _           -> true
-%                           end;
-%            _           -> false
-%        end
-%    end,
-%    try lists:filter(GrepHttp ,[Complement(M) || M <- finding(<<"a">>,<<"href">>, Tree)]) of
-%        M -> {ok, M}
-%    catch
-%        _ : Error -> {error, Error}
-%    end.
-%    
-%finding(Pattern, Attribute, Tree) when is_binary(Attribute)->  
-% GetAttr = fun(Found) ->  
-%    {Pattern, Attributes, _} = Found,  
-%    [{Attribute, FoundAttribute} | _] = lists:filter(fun(Attr) -> case Attr of {Attribute, _} -> true; _ -> false end end, Attributes),  
-%    binary_to_list(FoundAttribute)  
-%  end,  
-%  [GetAttr(M) || M <- finding(Pattern, [Tree], [])];  
-%  
-%finding(_, [], Collected) ->  
-%  Collected;  
-%  
-%finding(Pattern, [Next | Siblings], Collected) ->  
-%  case Next of  
-%    {Element, _, Children} ->  
-%    case Element of  
-%      Pattern ->  
-%        finding(Pattern, Siblings ++ Children, Collected ++ [Next]);  
-%      _ ->  
-%        finding(Pattern, Siblings ++ Children, Collected)  
-%    end;  
-%  _ ->  
-%    finding(Pattern, Siblings, Collected)  
-%  end.
   
 trim_slash(Str) ->
     {_,LS,_} = regexp:sub(Str, "\/*$", ""),
     {_,RS,_} = regexp:sub(LS, "^\/*", ""),
     RS.
-    
-job_done(Url) ->
-    io:format("job ~p done . ~n", [Url]),
-    mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=Url, state=done}) end).
 
 save_job(Results) ->
     lists:foreach(fun(Url) ->

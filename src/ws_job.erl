@@ -31,52 +31,12 @@ init(Args) ->
   set_first_job(),
   {ok, Args}.
   
-handle_cast({getjob, Pid}, State=#job_state{}) ->
-    %io:format("WS get job cast !!!! ~n"),
-    Ans = mnesia:transaction(fun() -> mnesia:select(jobrec, [{#jobrec{state=new, url='$1'}, [], ['$1']}], 1, read) end ),
-    %io:format("ANS !!!! ~p ~n", [Ans]),
-    case Ans of
-        {atomic, {[Url|_], _}} ->
-            %io:format("ANS !!!! ~p ~n", [Url]),
-            mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=Url, state=processing}) end),
-            gen_server:cast(Pid, {job, Url});
-        _                      ->
-            io:format("bad ans format ~p ~n", [Ans])
-    end,
-    {noreply, State};
-handle_cast({jobdone, _Pid, Url}, State=#job_state{}) ->
-    io:format("WS job ~p done . ~n", [Url]),
-    %Ret = mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=Url, state=done}) end),
-    %case Ret of
-    %    {atomic, Result} -> io:format("WS job ~p done TRRES : ~p . ~n", [Url, Result]);
-    %    M ->    io:format("WS job ~p done TRRES Fail: ~p . ~n", [Url, M])
-    %end,
-    mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=Url, state=done}) end),
-    {noreply, State};
-handle_cast({jobfail, _Pid, Url}, State=#job_state{}) ->
-    io:format("WS job ~p fail . ~n", [Url]),
-    mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=Url, state=fail}) end),
-    {noreply, State};
+
 handle_cast({ping, Pid, Url}, State=#job_state{}) ->
     gen_server:cast(Pid, {job, Url}),
     %worker_checkout(MaxWorkers),
-    {noreply, State};
-handle_cast({savejob, _Pid, Results}, State=#job_state{}) ->
-    %io:format("WS save job results ~p ~n",[Results]),
-    lists:foreach(fun(Url) ->
-            case check_not_exists(Url) of
-                true ->
-                    Row = #jobrec{url=Url, state=new},
-                    F = fun() -> mnesia:write(Row) end,
-                    mnesia:transaction(F);
-                    %io:format("WS save job results ret ~p ~n", [Trret]);
-                _    -> false
-            end
-            end, Results),
-    io:format("NOW IN Mnesia new : ~p ~n", [length(do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == new])))]),
-    io:format("NOW IN Mnesia done : ~p ~n", [length(do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == done])))]),
-    %io:format("NOW IN Mnesia fail : ~p ~n", [do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == fail]))]),
-    %worker_checkout(MaxWorkers),
+    { memory, M } = erlang:process_info (self (), memory),
+    io:format("MEMORY JOB SERVER: ~p~n", [M]),
     {noreply, State};
 handle_cast(Msg, State) ->
     io:format("WS job unknown cast !!!! ~p ~p ~n", [Msg, State]),
@@ -96,12 +56,11 @@ do_this_once() ->
     Ret = mnesia:create_table(jobrec, [{attributes, record_info(fields, jobrec)},
         {type, set}, {disc_only_copies, [node()]}, {ram_copies, []}]),
     io:format("DTHO!!!! ~p ~n", [Ret]),
-%    mnesia:change_table_copy_type(jobrec, node(), disc_only_copies),
     mnesia:stop().
 
 set_first_job() ->
     mnesia:clear_table(jobrec),
-    Row = #jobrec{url="http://perl.org", state=new},
+    Row = #jobrec{url=list_to_binary("http://perl.com"), state=new},
     F = fun() -> mnesia:write(Row) end,
     mnesia:transaction(F).
     
@@ -111,18 +70,14 @@ do(Q) ->
     Val.
 
 check_not_exists(Url) ->
-    Ans = mnesia:transaction(fun() -> mnesia:select(jobrec, [{#jobrec{state='$1', url=Url}, [], ['$1']}], 1, read) end ),
+    Ans = mnesia:transaction(fun() -> mnesia:select(jobrec, [{#jobrec{state='$1', url=list_to_binary(Url)}, [], ['$1']}], 1, read) end ),
     case Ans of
         {atomic, {[], _}}-> true;
         {atomic, {_, _}} -> false;
         _                -> true
     end.
 
-
-    
 worker_checkout(MaxWorkers) ->
-%    WW = supervisor:which_children(ws_com_sup),
-%    Workers = [string:to_integer(string:substr(Id, 9)) || {Id, _, _, _} <- WW],
     ChildListLength = erlang:length(supervisor:which_children(ws_com_sup)),
     io:format("Current worker count: ~p ~n", [ChildListLength]),
     NewJobCount = erlang:length(do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == new]))),
