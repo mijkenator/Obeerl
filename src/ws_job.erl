@@ -32,9 +32,9 @@ init(Args) ->
   {ok, Args}.
   
 
-handle_cast({ping, Pid, Url}, State=#job_state{}) ->
-    gen_server:cast(Pid, {job, Url}),
-    %worker_checkout(MaxWorkers),
+handle_cast({ping, _Pid, _Url}, State=#job_state{maxworkers = MaxWorkers}) ->
+    %gen_server:cast(Pid, {job, Url}),
+    worker_checkout(MaxWorkers),
     { memory, M } = erlang:process_info (self (), memory),
     io:format("MEMORY JOB SERVER: ~p~n", [M]),
     {noreply, State};
