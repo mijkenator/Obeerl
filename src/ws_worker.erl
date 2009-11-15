@@ -30,7 +30,7 @@
 start_link(WorkerName) ->
     io:format("wsworker started ~p ~n", [WorkerName]),
     Result = gen_fsm:start_link({local, WorkerName},?MODULE, #worker_state{workername = WorkerName, counter=0}, []),
-    io:format("wsworker started Result ~p ~n", [Result]),
+    io:format("wsworker started Result ~p ~p ~n", [Result, WorkerName]),
     Result.
     
 init(Args) ->
@@ -38,11 +38,16 @@ init(Args) ->
   {ok, 'WAIT_FOR_JOB', Args, 10}.
   
 'WAIT_FOR_JOB'(_Other, State) ->
-    NewUrl = get_job(),
-    io:format("'WAIT_FOR_JOB' ~p ~n", [NewUrl]),
-    gen_server:cast(ws_job, {ping, self(), NewUrl}),
-    {next_state, 'WAIT_FOR_WORK', State#worker_state{url=NewUrl}, 10}.
-
+    case mnesia:transaction(fun() -> get_job() end) of
+        {atomic, {ok, NewUrl}} ->
+            io:format("'WAIT_FOR_JOB' ~p ~n", [NewUrl]),
+            gen_server:cast(ws_job, {ping, self(), NewUrl}),
+            {next_state, 'WAIT_FOR_WORK', State#worker_state{url=NewUrl}, 10};
+        R ->
+            io:format("'WAIT_FOR_JOB' no work ~p ~n", [R]),
+            {next_state, 'WAIT_FOR_JOB', State, 5000}
+    end.
+    
 'WAIT_FOR_WORK'(_Data, #worker_state{workername = WorkerName, counter=Counter, url=U} = State) ->
     Url = binary_to_list(U),
     { memory, M } = erlang:process_info (self (), memory),
@@ -51,19 +56,27 @@ init(Args) ->
         {ok, _}       ->
             { memory, M1 } = erlang:process_info (self (), memory),
             io:format("MEMORY1:~p ~p~n", [WorkerName, M1]),
-            mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=list_to_binary(Url), state=done}) end),
-            { memory, M2 } = erlang:process_info (self (), memory),
-            io:format("MEMORY2:~p ~p~n", [WorkerName, M2]),
-            { memory, M3 } = erlang:process_info (self (), memory),
-            io:format("MEMORY3:~p ~p~n", [WorkerName, M3]);
+            mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=list_to_binary(Url), state=done}) end);
+            %{ memory, M2 } = erlang:process_info (self (), memory),
+            %io:format("MEMORY2:~p ~p~n", [WorkerName, M2]),
+            %{ memory, M3 } = erlang:process_info (self (), memory),
+            %io:format("MEMORY3:~p ~p~n", [WorkerName, M3]);
         {error, Reason} ->
             mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=list_to_binary(Url), state=fail}) end),
             io:format("job error: ~p~n",  [Reason])
     end,
     case Counter of
+        Counter when Counter=:=5; Counter=:=15;Counter=:=25;Counter=:=35 ->
+            {ok, S} = file:open("memlog.log", [append]),
+            io_format_wrap(S, "DEBUG", erlang:memory()),
+            file:close(S),
+            {next_state, 'WAIT_FOR_JOB', State#worker_state{workername = WorkerName, counter=Counter+1}, 100};
         Counter when Counter < 50 ->
-            {next_state, 'WAIT_FOR_JOB', State#worker_state{workername = WorkerName, counter=Counter+1}, 10};
+            {next_state, 'WAIT_FOR_JOB', State#worker_state{workername = WorkerName, counter=Counter+1}, 100};
         _ ->
+            {ok, S} = file:open("memlog.log", [append]),
+            io_format_wrap(S, "DEBUG", erlang:memory()),
+            file:close(S),
             {stop, normal, State}
             %{next_state, 'WAIT_FOR_JOB', State#worker_state{workername = WorkerName, counter=Counter+1}, 10}
     end.
@@ -85,10 +98,10 @@ terminate(_Reason, _StateName, _State) ->
 
 
 do_job(Url, State) ->
-    io:format("Do job -> ~p ~p ~n", [State, Url]),
+    io:format("Do job -> ~p ~n", [State]),
     case http:request(get, {Url, []}, [{timeout, 20000}, {autoredirect, true}], [{body_format, binary}]) of
-        {ok, {Status, _Headers, Body}} ->
-            io:format("job ~p result status -> ~p  ~n", [Url, Status]),
+        {ok, {_Status, _Headers, Body}} ->
+            %io:format("job ~p result status -> ~p  ~n", [Url, Status]),
             %o:format("job ~p headers -> ~p bytes ~n",  [Url, Headers]),
             %io:format("job ~p body length -> ~p bytes ~n", [Url, string:len(Body)]),
             io:format("job ~p body length -> ~p bytes ~n", [Url, size(Body)]),
@@ -154,7 +167,6 @@ save_url(Url) ->
         _    ->     false
     end.
 
-
 check_not_exists(Url) ->
     Ans = mnesia:transaction(fun() -> mnesia:select(jobrec, [{#jobrec{state='$1', url=Url}, [], ['$1']}], 1, read) end ),
     case Ans of
@@ -164,16 +176,21 @@ check_not_exists(Url) ->
     end.
     
 get_job() ->
-    Ans = mnesia:transaction(fun() -> mnesia:select(jobrec, [{#jobrec{state=new, url='$1'}, [], ['$1']}], 1, read) end ),
+    Ans = mnesia:select(jobrec, [{#jobrec{state=new, url='$1'}, [], ['$1']}], 1, write),
     case Ans of
-        {atomic, {[Url|_], _}} ->
-            mnesia:transaction(fun() ->  mnesia:write(#jobrec{url=Url, state=processing}) end),Url;
+        {[Url|_], _} -> mnesia:write(#jobrec{url=Url, state=processing}), {ok, Url};
         _                      ->
             io:format("GET JOB failed -> ~p ~n", [Ans]),
-            get_job()
+            {error, wait_for_job}
+            %mijkutils:sleep(5),
+            %get_job()
     end.
-
-%------------------------------------------------------
+    
+io_format_wrap(S, Type, Message) ->
+    {{Year,Month,Day},{Hour,Min,Sec}} = calendar:now_to_datetime(erlang:now()),
+    io:format(S, "~-15w ~2B/~2B/~4B ~2B:~2.10.0B:~2.10.0B  ~p ~n",
+    [Type, Month, Day, Year, Hour, Min, Sec, Message]).
+%-------------------------------------------------------------------------------
 
 finding(Pattern, Attribute, Tree, MainUrl) when is_binary(Attribute)->
     Complement = fun(Url) ->

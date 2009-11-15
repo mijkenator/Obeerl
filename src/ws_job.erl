@@ -62,7 +62,8 @@ set_first_job() ->
     mnesia:clear_table(jobrec),
     Row = #jobrec{url=list_to_binary("http://perl.com"), state=new},
     F = fun() -> mnesia:write(Row) end,
-    mnesia:transaction(F).
+    Ret = mnesia:transaction(F),
+    io:format("SFJ ~p ~n", [Ret]).
     
 do(Q) ->
     F = fun() -> qlc:e(Q) end,
@@ -80,7 +81,8 @@ check_not_exists(Url) ->
 worker_checkout(MaxWorkers) ->
     ChildListLength = erlang:length(supervisor:which_children(ws_com_sup)),
     io:format("Current worker count: ~p ~n", [ChildListLength]),
-    NewJobCount = erlang:length(do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == new]))),
+    %NewJobCount = erlang:length(do(qlc:q([X || X <- mnesia:table(jobrec), X#jobrec.state == new]))),
+    NewJobCount = 500,
     lists:map(fun(Elem) -> web_searcher:start_client(list_to_atom(string:concat("wsworker",integer_to_list(Elem)))) end,
         additional_worker_list(MaxWorkers, NewJobCount, ChildListLength)).
 
